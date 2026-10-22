@@ -36,7 +36,7 @@ export async function GET(
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET",
         "Content-Type": "application/json; charset=utf-8",
-        "Cache-Control": "public, max-age=86400, stale-while-revalidate=604800",
+        "Cache-Control": "public, max-age=1800, stale-while-revalidate=86400",
       },
     });
   } catch (err) {

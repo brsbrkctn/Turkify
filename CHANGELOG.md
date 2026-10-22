@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.3] - 2026-10-22
+
+### Changed
+- **Client Cache Optimization**:
+  - Lowered `max-age` in `Cache-Control` header from 24 hours to 30 minutes (`max-age=1800, stale-while-revalidate=86400`) on metadata endpoints so TV clients (Nuvio / Stremio) pick up newly translated episodes and cache updates promptly without requiring a manual app cache wipe.
+- **Documentation & Keep-Alive Automation**:
+  - Updated `README.md` with in-app catalog search and high-throughput batching capabilities.
+  - Added Keep-Alive recurring cron job via `cron-job.org` running every 15 minutes to eliminate serverless cold starts.
+
+---
+
 ## [1.0.2] - 2026-10-22
 
 ### Fixed

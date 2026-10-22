@@ -6,7 +6,8 @@ A high-performance, open-source metadata provider addon for **Stremio** and **Nu
 
 ## 🌟 Features
 
-- **Automatic Turkish Translations**: Automatically translates movie and series plot overviews, genres, and season/episode descriptions into natural Turkish.
+- **Automatic Turkish Translations**: Automatically translates movie and series plot overviews, genres, and season/episode descriptions into natural Turkish with high-throughput delimiter batching.
+- **In-App Catalog Search**: Full support for Stremio and Nuvio in-app catalog search, delivering instant Turkish search results.
 - **Smart Hybrid Architecture**:
   1. **Supabase PostgreSQL Cache**: Fetches previously translated metadata in under 50ms.
   2. **TMDB Native Turkish Database**: Integrates directly with TMDB for human-verified Turkish synopsis and artwork when available.
