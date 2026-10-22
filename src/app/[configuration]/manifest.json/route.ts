@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getManifest } from "@/lib/manifest";
+import { parseConfig } from "@/lib/config-helper";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -9,7 +10,8 @@ export async function GET(
   { params }: { params: { configuration: string } }
 ) {
   const origin = request.nextUrl.origin;
-  const manifest = getManifest(origin);
+  const config = parseConfig(params.configuration);
+  const manifest = getManifest(origin, config);
 
   return NextResponse.json(manifest, {
     headers: {

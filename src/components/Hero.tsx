@@ -11,7 +11,7 @@ interface HeroProps {
 export function Hero({ onScrollToConfig, onScrollToGuide }: HeroProps) {
   return (
     <section className="relative pt-12 pb-16 sm:pt-20 sm:pb-24 overflow-hidden">
-      {/* Background ambient dual glow matching the logo */}
+      {/* Background ambient dual glow matching the brand logo */}
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[650px] h-[380px] bg-sky-500/15 blur-[140px] -z-10 rounded-full pointer-events-none" />
       <div className="absolute top-1/2 left-2/3 -translate-y-1/2 w-[350px] h-[250px] bg-orange-500/10 blur-[130px] -z-10 rounded-full pointer-events-none" />
 
@@ -22,9 +22,10 @@ export function Hero({ onScrollToConfig, onScrollToGuide }: HeroProps) {
           <span>Stremio & Nuvio İçin Otomatik Türkçe Meta</span>
         </div>
 
-        {/* Main Headline */}
-        <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-white leading-[1.15] mb-6">
-          Dizi ve Filmlerin Konuları{" "}
+        {/* Main Headline - Line break on 'Artık Türkçe.' */}
+        <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-white leading-[1.18] mb-6">
+          Dizi ve Filmlerin Konuları
+          <br />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-cyan-300 to-orange-400">
             Artık Türkçe.
           </span>
@@ -55,7 +56,7 @@ export function Hero({ onScrollToConfig, onScrollToGuide }: HeroProps) {
           </button>
         </div>
 
-        {/* Value props badges */}
+        {/* Value props badges without tech-stack slop */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-14 max-w-3xl mx-auto pt-8 border-t border-slate-800/80">
           <div className="flex items-center gap-3 p-3.5 rounded-xl bg-slate-900/50 border border-slate-800/80 hover:border-sky-500/30 transition-colors">
             <div className="w-9 h-9 rounded-lg bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 shrink-0">
@@ -63,7 +64,7 @@ export function Hero({ onScrollToConfig, onScrollToGuide }: HeroProps) {
             </div>
             <div className="text-left">
               <h4 className="text-sm font-semibold text-white">Yüksek Hız</h4>
-              <p className="text-xs text-slate-400">Supabase DB önbelleği ile &lt;50ms</p>
+              <p className="text-xs text-slate-400">Akıllı bulut önbelleği ile &lt;30ms</p>
             </div>
           </div>
 

@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.0] - 2026-10-22
+
+### Added & Improved
+- **Official High-Res Transparent Favicon & Logo**:
+  - Extracted and integrated the official 1830x1830 transparent PNG asset (`Favicon turkify.png`) as the official logo, browser favicon, and Stremio/Nuvio catalog icon, replacing compressed square artifacts.
+- **Authentic Breaking Bad Live Preview**:
+  - Integrated official Breaking Bad TMDB poster and backdrop imagery into the live interactive preview.
+  - Centered poster, titles, ratings, and genre tags on mobile viewport for flawless responsive balance.
+  - Added localized season and episode counts ("5 Seasons • 62 Episodes" on Cinemeta toggle).
+- **Expanded & Verified Addon Configurator**:
+  - Expanded configurator to 4 granular, fully-working settings (all enabled by default with `(Önerilen)` tags):
+    1. *Orijinal Başlıkları Koru (Önerilen)*
+    2. *Dizi Bölüm Konularını Çevir (Önerilen)*
+    3. *Zengin Medya ve Oyuncular (Önerilen)*
+    4. *Ana Sayfa Popüler Katalogları (Önerilen)*
+  - Eliminated duplicate copy buttons: a single, dedicated copy button with instant feedback in the manifest URL bar, paired with the primary "Stremio'ya Otomatik Ekle" CTA.
+  - Full end-to-end integration: dynamic manifest generation, catalog pruning, and safe Supabase cache query decoupling.
+- **Copy & UI Refinement**:
+  - Reformatted hero title with clean line break: *"Dizi ve Filmlerin Konuları <br /> Artık Türkçe."*.
+  - Completely purged internal technical stack references ("Supabase", "Vercel") from all user-facing website copy and badges.
+
+---
+
 ## [1.0.9] - 2026-10-22
 
 ### Added & Improved

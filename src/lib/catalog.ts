@@ -2,6 +2,7 @@ import { translateGenres } from "./genres";
 import { batchTranslate } from "./translator";
 import { getCachedMeta } from "./supabase";
 import { fetchTMDBMeta, searchTMDB } from "./tmdb";
+import { AddonConfig } from "./types";
 
 const CINEMETA_URL = "https://v3-cinemeta.strem.io";
 
@@ -25,13 +26,17 @@ export async function getTranslatedCatalog(
   type: "movie" | "series",
   catalogId: string,
   skip: number = 0,
-  search?: string
+  search?: string,
+  config?: AddonConfig
 ): Promise<{ metas: CatalogItem[] }> {
   try {
     // 1. If search is specified, use TMDB Search API for exact matching and verified IMDb IDs
     if (search && search.trim().length > 0) {
       const tmdbResults = await searchTMDB(type, search.trim());
       if (tmdbResults.length > 0) {
+        if (config?.keepOriginalTitle !== false) {
+          return { metas: tmdbResults };
+        }
         return { metas: tmdbResults };
       }
     }
@@ -76,12 +81,13 @@ export async function getTranslatedCatalog(
         let name = cached?.title || item.name;
         let description = cached?.overview || item.description;
 
-        // Upgrade poster and background from TMDB if missing or using metahub placeholder
+        // Upgrade poster and background from TMDB if enabled
         if (
-          !poster ||
-          !background ||
-          poster.includes("metahub.space") ||
-          background.includes("metahub.space")
+          config?.enrichTmdbMedia !== false &&
+          (!poster ||
+            !background ||
+            poster.includes("metahub.space") ||
+            background.includes("metahub.space"))
         ) {
           try {
             const tmdb = await fetchTMDBMeta(type, item.id);
@@ -94,12 +100,15 @@ export async function getTranslatedCatalog(
           }
         }
 
+        const finalName =
+          config?.keepOriginalTitle !== false ? item.name : name || item.name;
+
         return {
           raw: item,
           cached,
           poster,
           background,
-          name,
+          name: finalName,
           description,
         };
       })

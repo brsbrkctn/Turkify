@@ -16,8 +16,15 @@ export function parseConfig(configParam?: string): AddonConfig {
     const parsed = JSON.parse(decoded);
     if (typeof parsed === "object" && parsed !== null) {
       return {
-        turkishTitle: Boolean(parsed.turkishTitle),
+        keepOriginalTitle:
+          parsed.keepOriginalTitle !== undefined
+            ? Boolean(parsed.keepOriginalTitle)
+            : parsed.turkishTitle !== undefined
+            ? !Boolean(parsed.turkishTitle)
+            : true,
         translateEpisodes: parsed.translateEpisodes !== false,
+        enrichTmdbMedia: parsed.enrichTmdbMedia !== false,
+        enableCatalogs: parsed.enableCatalogs !== false,
       };
     }
   } catch {
@@ -26,9 +33,17 @@ export function parseConfig(configParam?: string): AddonConfig {
 
   try {
     const params = new URLSearchParams(configParam);
+    const hasKot = params.has("keepOriginalTitle");
+    const hasTt = params.has("turkishTitle");
     return {
-      turkishTitle: params.get("turkishTitle") === "true",
+      keepOriginalTitle: hasKot
+        ? params.get("keepOriginalTitle") !== "false"
+        : hasTt
+        ? params.get("turkishTitle") !== "true"
+        : true,
       translateEpisodes: params.get("translateEpisodes") !== "false",
+      enrichTmdbMedia: params.get("enrichTmdbMedia") !== "false",
+      enableCatalogs: params.get("enableCatalogs") !== "false",
     };
   } catch {
     return {};

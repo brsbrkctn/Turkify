@@ -64,8 +64,10 @@ export interface StremioManifest {
 }
 
 export interface AddonConfig {
-  turkishTitle?: boolean;
+  keepOriginalTitle?: boolean;
   translateEpisodes?: boolean;
+  enrichTmdbMedia?: boolean;
+  enableCatalogs?: boolean;
 }
 
 export interface CachedMetadata {

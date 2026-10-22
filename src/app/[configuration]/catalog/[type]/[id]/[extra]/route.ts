@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getTranslatedCatalog } from "@/lib/catalog";
+import { parseConfig } from "@/lib/config-helper";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -12,7 +13,7 @@ export async function GET(
     params: { configuration: string; type: string; id: string; extra: string };
   }
 ) {
-  const { type, id, extra } = params;
+  const { configuration, type, id, extra } = params;
 
   if (type !== "movie" && type !== "series") {
     return NextResponse.json({ metas: [] }, { status: 404 });
@@ -20,6 +21,7 @@ export async function GET(
 
   const cleanId = id.replace(/\.json$/, "").trim();
   const cleanExtra = extra.replace(/\.json$/, "").trim();
+  const config = parseConfig(configuration);
 
   // Parse extra arguments (e.g. search=silo, skip=20, search=silo&skip=0)
   const searchParams = new URLSearchParams(cleanExtra);
@@ -31,7 +33,8 @@ export async function GET(
       type as "movie" | "series",
       cleanId,
       skip,
-      search
+      search,
+      config
     );
 
     return NextResponse.json(result, {

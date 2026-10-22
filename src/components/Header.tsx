@@ -5,14 +5,14 @@ import { Github } from "lucide-react";
 
 export function Header() {
   return (
-    <header className="w-full border-b border-slate-800/80 bg-[#070b14]/70 backdrop-blur-xl sticky top-0 z-50">
+    <header className="w-full border-b border-slate-800/80 bg-[#070b14]/75 backdrop-blur-xl sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg shadow-sky-950/40 border border-sky-500/30 bg-slate-900/80 flex items-center justify-center p-1 hover:scale-105 transition-transform">
+          <div className="w-9 h-9 flex items-center justify-center shrink-0">
             <img
               src="/logo.png"
               alt="Turkify Logo"
-              className="w-full h-full object-contain rounded-lg"
+              className="w-full h-full object-contain drop-shadow-[0_0_12px_rgba(56,189,248,0.35)] hover:scale-105 transition-transform"
             />
           </div>
           <div>
@@ -21,7 +21,7 @@ export function Header() {
                 Turkify
               </span>
               <span className="text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20">
-                v1.0.8
+                v1.1.0
               </span>
             </div>
             <p className="text-xs text-slate-400 hidden sm:block">

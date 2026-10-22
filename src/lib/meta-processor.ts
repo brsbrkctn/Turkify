@@ -218,13 +218,17 @@ export async function getTranslatedMetadata(
       }
 
       const displayName =
-        config.turkishTitle && cachedTitle
+        config.keepOriginalTitle === false && cachedTitle
           ? cachedTitle
           : cached.original_title || baseMeta.name;
 
       // Merge videos: use baseMeta video structure enriched with cached translations
       let mergedVideos: MetaVideo[] | undefined = baseMeta.videos;
-      if (baseMeta.videos && cachedVideos) {
+      if (
+        config.translateEpisodes !== false &&
+        baseMeta.videos &&
+        cachedVideos
+      ) {
         mergedVideos = baseMeta.videos.map((bv) => {
           const cv = cachedVideos?.find(
             (cv) =>
@@ -247,11 +251,26 @@ export async function getTranslatedMetadata(
 
       // Merge cast from TMDB if available (15+ actors instead of 3)
       const finalCast =
-        tmdbData?.cast && tmdbData.cast.length > 0
+        config.enrichTmdbMedia !== false &&
+        tmdbData?.cast &&
+        tmdbData.cast.length > 0
           ? tmdbData.cast.map((c) => c.name)
           : cached.cast || baseMeta.cast;
 
-      const enrichedLinks = buildEnrichedLinks(baseMeta.links, tmdbData?.cast);
+      const finalPoster =
+        config.enrichTmdbMedia !== false && tmdbData?.posterPath
+          ? tmdbData.posterPath
+          : cached.poster || baseMeta.poster;
+
+      const finalBackground =
+        config.enrichTmdbMedia !== false && tmdbData?.backdropPath
+          ? tmdbData.backdropPath
+          : cached.background || baseMeta.background;
+
+      const enrichedLinks =
+        config.enrichTmdbMedia !== false
+          ? buildEnrichedLinks(baseMeta.links, tmdbData?.cast)
+          : baseMeta.links;
 
       return {
         meta: {
@@ -260,6 +279,8 @@ export async function getTranslatedMetadata(
           originalName: baseMeta.name,
           description: cachedOverview || baseMeta.description,
           genres: cached.genres || translateGenres(baseMeta.genres),
+          poster: finalPoster,
+          background: finalBackground,
           videos: mergedVideos,
           cast: finalCast,
           links: enrichedLinks,
@@ -382,8 +403,8 @@ export async function getTranslatedMetadata(
     }
   }
 
-  // 7. Assemble final cast (TMDB 15+ actors preferred over Cinemeta 3 actors)
-  const finalCast =
+  // 7. Assemble final cast for caching (TMDB 15+ actors preferred over Cinemeta 3 actors)
+  const persistedCast =
     tmdbData?.cast && tmdbData.cast.length > 0
       ? tmdbData.cast.map((c) => c.name)
       : baseMeta.cast;
@@ -407,7 +428,7 @@ export async function getTranslatedMetadata(
     release_info: baseMeta.releaseInfo || (baseMeta.year ? String(baseMeta.year) : undefined),
     runtime: baseMeta.runtime,
     director: baseMeta.director,
-    cast: finalCast,
+    cast: persistedCast,
     source,
     updated_at: new Date().toISOString(),
   };
@@ -423,9 +444,31 @@ export async function getTranslatedMetadata(
   }
 
   const displayName =
-    config.turkishTitle && turkishTitle ? turkishTitle : originalTitle;
+    config.keepOriginalTitle === false && turkishTitle
+      ? turkishTitle
+      : originalTitle;
 
-  const enrichedLinks = buildEnrichedLinks(baseMeta.links, tmdbData?.cast);
+  const finalCast =
+    config.enrichTmdbMedia !== false &&
+    tmdbData?.cast &&
+    tmdbData.cast.length > 0
+      ? tmdbData.cast.map((c) => c.name)
+      : baseMeta.cast;
+
+  const finalPoster =
+    config.enrichTmdbMedia !== false && tmdbData?.posterPath
+      ? tmdbData.posterPath
+      : baseMeta.poster;
+
+  const finalBackground =
+    config.enrichTmdbMedia !== false && tmdbData?.backdropPath
+      ? tmdbData.backdropPath
+      : baseMeta.background;
+
+  const enrichedLinks =
+    config.enrichTmdbMedia !== false
+      ? buildEnrichedLinks(baseMeta.links, tmdbData?.cast)
+      : baseMeta.links;
 
   return {
     meta: {
@@ -434,6 +477,8 @@ export async function getTranslatedMetadata(
       originalName: originalTitle,
       description: finalOverview,
       genres: turkishGenres,
+      poster: finalPoster,
+      background: finalBackground,
       videos: translatedVideos,
       cast: finalCast,
       links: enrichedLinks,
