@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS public.translated_meta (
     release_info TEXT,                         -- Yayın yılı (örn: 2024)
     runtime TEXT,                              -- Süre (örn: 148 min)
     director JSONB DEFAULT '[]'::jsonb,        -- Yönetmenler
-    cast JSONB DEFAULT '[]'::jsonb,            -- Oyuncular
+    "cast" JSONB DEFAULT '[]'::jsonb,            -- Oyuncular
     source TEXT DEFAULT 'auto',                -- 'tmdb', 'google', 'mymemory'
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
