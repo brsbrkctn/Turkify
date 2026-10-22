@@ -28,7 +28,9 @@ async function runTests() {
     const manifest = getManifest();
     assert(manifest.id === "org.brsbrkctn.turkify", "Manifest ID is org.brsbrkctn.turkify");
     assert(manifest.types.includes("movie") && manifest.types.includes("series"), "Manifest supports movie and series");
-    assert(manifest.idPrefixes?.includes("tt"), "Manifest specifies tt idPrefix");
+    assert(manifest.resources.includes("meta"), "Manifest supports meta resource");
+    assert(manifest.resources.includes("catalog"), "Manifest supports catalog resource");
+    assert(manifest.catalogs.length >= 2, "Manifest defines Turkish catalogs");
   } catch (err) {
     assert(false, `Manifest test crashed: ${err.message}`);
   }

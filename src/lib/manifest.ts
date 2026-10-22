@@ -1,20 +1,33 @@
 import { StremioManifest } from "./types";
 
 export function getManifest(baseUrl?: string): StremioManifest {
-  const origin = baseUrl || "https://turkify.vercel.app";
+  const origin = baseUrl || "https://turkify-addon.vercel.app";
 
   return {
     id: "org.brsbrkctn.turkify",
-    version: "1.0.0",
-    name: "Turkify (Türkçe Meta)",
+    version: "1.0.1",
+    name: "Turkify (Türkçe)",
     description:
       "Stremio ve Nuvio için film, dizi ve bölüm açıklamalarını otomatik Türkçe'ye çevirip sunan yüksek hızlı meta eklentisi.",
     logo: `${origin}/icon.svg`,
     background: `${origin}/background.jpg`,
-    resources: ["meta"],
+    resources: ["catalog", "meta"],
     types: ["movie", "series"],
     idPrefixes: ["tt"],
-    catalogs: [],
+    catalogs: [
+      {
+        type: "movie",
+        id: "top",
+        name: "Turkify: Popüler Filmler",
+        extra: [{ name: "skip" }],
+      },
+      {
+        type: "series",
+        id: "top",
+        name: "Turkify: Popüler Diziler",
+        extra: [{ name: "skip" }],
+      },
+    ],
     behaviorHints: {
       configurable: true,
       configurationRequired: false,
