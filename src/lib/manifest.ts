@@ -5,7 +5,7 @@ export function getManifest(baseUrl?: string): StremioManifest {
 
   return {
     id: "org.brsbrkctn.turkify",
-    version: "1.0.1",
+    version: "1.0.2",
     name: "Turkify (Türkçe)",
     description:
       "Stremio ve Nuvio için film, dizi ve bölüm açıklamalarını otomatik Türkçe'ye çevirip sunan yüksek hızlı meta eklentisi.",
@@ -19,13 +19,19 @@ export function getManifest(baseUrl?: string): StremioManifest {
         type: "movie",
         id: "top",
         name: "Turkify: Popüler Filmler",
-        extra: [{ name: "skip" }],
+        extra: [
+          { name: "search", isRequired: false },
+          { name: "skip", isRequired: false },
+        ],
       },
       {
         type: "series",
         id: "top",
         name: "Turkify: Popüler Diziler",
-        extra: [{ name: "skip" }],
+        extra: [
+          { name: "search", isRequired: false },
+          { name: "skip", isRequired: false },
+        ],
       },
     ],
     behaviorHints: {

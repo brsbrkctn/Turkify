@@ -15,18 +15,19 @@ export async function GET(
   }
 
   const cleanId = id.replace(/\.json$/, "").trim();
-  const cleanExtra = extra.replace(/\.json$/, "");
-  
-  let skip = 0;
-  if (cleanExtra.startsWith("skip=")) {
-    skip = parseInt(cleanExtra.replace("skip=", ""), 10) || 0;
-  }
+  const cleanExtra = extra.replace(/\.json$/, "").trim();
+
+  // Parse extra arguments (e.g. search=silo, skip=20, search=silo&skip=0)
+  const searchParams = new URLSearchParams(cleanExtra);
+  const search = searchParams.get("search") || undefined;
+  const skip = parseInt(searchParams.get("skip") || "0", 10) || 0;
 
   try {
     const result = await getTranslatedCatalog(
       type as "movie" | "series",
       cleanId,
-      skip
+      skip,
+      search
     );
 
     return NextResponse.json(result, {

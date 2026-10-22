@@ -6,6 +6,19 @@ import { getCachedMeta, saveCachedMeta } from "./supabase";
 import { AddonConfig, MetaDetail, MetaVideo, CachedMetadata } from "./types";
 
 /**
+ * Checks if a text string is likely English and hasn't been translated to Turkish yet.
+ */
+function isLikelyEnglish(text?: string): boolean {
+  if (!text || text.trim().length < 8) return false;
+  // If it contains Turkish specific letters, it is definitely already Turkish
+  if (/[çğıöşüÇĞİÖŞÜ]/.test(text)) return false;
+  // If it contains common English structural words
+  return /\b(the|and|with|from|after|before|when|into|their|about|while|which|where|this|that|they|have|been|during|discovers)\b/i.test(
+    text
+  );
+}
+
+/**
  * Core metadata orchestration function.
  * Checks cache -> fetches Cinemeta & TMDB -> auto-translates -> caches & returns.
  */
@@ -25,6 +38,57 @@ export async function getTranslatedMetadata(
   try {
     const cached = await getCachedMeta(cleanId);
     if (cached) {
+      let cachedVideos = cached.videos;
+      let needsCacheUpdate = false;
+
+      // Check if cached series has any English episodes that were partially translated
+      if (
+        type === "series" &&
+        cachedVideos &&
+        cachedVideos.length > 0 &&
+        config.translateEpisodes !== false
+      ) {
+        const englishVideos = cachedVideos.filter((v) =>
+          isLikelyEnglish(v.overview || v.description)
+        );
+
+        if (englishVideos.length > 0) {
+          const textsToTranslate = englishVideos.map(
+            (v) => v.overview || v.description || ""
+          );
+          const translatedOverviews = await batchTranslate(textsToTranslate);
+
+          cachedVideos = cachedVideos.map((v) => {
+            const matchIndex = englishVideos.findIndex(
+              (ev) =>
+                ev.id === v.id ||
+                (ev.season === v.season && ev.number === v.number)
+            );
+            if (matchIndex !== -1 && translatedOverviews[matchIndex]) {
+              const trOverview = translatedOverviews[matchIndex];
+              return {
+                ...v,
+                overview: trOverview,
+                description: trOverview,
+              };
+            }
+            return v;
+          });
+          needsCacheUpdate = true;
+        }
+      }
+
+      if (needsCacheUpdate) {
+        const updatedRecord: CachedMetadata = {
+          ...cached,
+          videos: cachedVideos,
+          updated_at: new Date().toISOString(),
+        };
+        saveCachedMeta(updatedRecord).catch((err) =>
+          console.warn(`[MetaProcessor] Background cache update failed for ${cleanId}:`, err)
+        );
+      }
+
       const displayName =
         config.turkishTitle && cached.title
           ? cached.title
@@ -38,7 +102,7 @@ export async function getTranslatedMetadata(
           originalName: cached.original_title,
           description: cached.overview,
           genres: cached.genres,
-          videos: cached.videos,
+          videos: cachedVideos,
           poster: cached.poster,
           background: cached.background,
           logo: cached.logo,
@@ -92,36 +156,38 @@ export async function getTranslatedMetadata(
   // 5. Translate genres to Turkish
   const turkishGenres = translateGenres(baseMeta.genres);
 
-  // 6. Handle Series Episodes (Batch translation for episode overviews with serverless safety limit)
+  // 6. Handle Series Episodes (Fast delimiter batch translation for up to 100 episodes)
   let translatedVideos: MetaVideo[] | undefined = baseMeta.videos;
   const shouldTranslateEpisodes = config.translateEpisodes !== false;
 
-  if (type === "series" && baseMeta.videos && baseMeta.videos.length > 0 && shouldTranslateEpisodes) {
+  if (
+    type === "series" &&
+    baseMeta.videos &&
+    baseMeta.videos.length > 0 &&
+    shouldTranslateEpisodes
+  ) {
     try {
-      // Limit to 30 episodes on first un-cached hit to strictly prevent Vercel 10s serverless timeout
-      const MAX_BATCH_EPISODES = 30;
-      const videosToProcess = baseMeta.videos.slice(0, MAX_BATCH_EPISODES);
-      const remainingVideos = baseMeta.videos.slice(MAX_BATCH_EPISODES);
+      const allVideos = [...baseMeta.videos];
+      const MAX_VIDEOS = 100;
+      const videosToProcess = allVideos.slice(0, MAX_VIDEOS);
+      const remainingVideos = allVideos.slice(MAX_VIDEOS);
 
       const episodesToTranslate = videosToProcess.map(
         (v) => v.overview || v.description || ""
       );
 
-      const nonEmpties = episodesToTranslate.filter((t) => t.trim().length > 0);
-      if (nonEmpties.length > 0) {
-        const translatedOverviews = await batchTranslate(episodesToTranslate, 5);
+      const translatedOverviews = await batchTranslate(episodesToTranslate);
 
-        const processedVideos = videosToProcess.map((v, idx) => {
-          const trOverview = translatedOverviews[idx] || v.overview || v.description;
-          return {
-            ...v,
-            overview: trOverview,
-            description: trOverview,
-          };
-        });
+      const processedVideos = videosToProcess.map((v, idx) => {
+        const trOverview = translatedOverviews[idx] || v.overview || v.description;
+        return {
+          ...v,
+          overview: trOverview,
+          description: trOverview,
+        };
+      });
 
-        translatedVideos = [...processedVideos, ...remainingVideos];
-      }
+      translatedVideos = [...processedVideos, ...remainingVideos];
     } catch (err) {
       console.warn(`[MetaProcessor] Episode batch translation error:`, err);
       translatedVideos = baseMeta.videos;
@@ -152,10 +218,15 @@ export async function getTranslatedMetadata(
     updated_at: new Date().toISOString(),
   };
 
-  // Asynchronously save to Supabase cache (don't block response)
-  saveCachedMeta(toCache).catch((err) =>
-    console.error(`[MetaProcessor] Failed to persist cache for ${cleanId}:`, err)
-  );
+  // Persist to Supabase with 2.5s race to avoid serverless freeze
+  try {
+    await Promise.race([
+      saveCachedMeta(toCache),
+      new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 2500)),
+    ]);
+  } catch (err) {
+    console.warn(`[MetaProcessor] Cache persist note for ${cleanId}:`, err);
+  }
 
   const displayName =
     config.turkishTitle && turkishTitle ? turkishTitle : originalTitle;
