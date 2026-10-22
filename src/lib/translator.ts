@@ -212,16 +212,59 @@ async function translateWithGoogleGtx(
 }
 
 /**
- * Secondary fallback using MyMemory API.
+ * Decodes common HTML entities returned by translation APIs (especially MyMemory).
  */
-async function translateWithMyMemory(text: string, targetLang: string): Promise<string> {
-  const query = text.length > 500 ? text.slice(0, 500) : text;
+function decodeHtmlEntities(str: string): string {
+  return str
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">");
+}
+
+/**
+ * Secondary fallback using MyMemory API.
+ * Gracefully splits texts longer than 450 characters along sentence/word boundaries
+ * and translates each chunk sequentially instead of truncating at 500 characters.
+ */
+export async function translateWithMyMemory(
+  text: string,
+  targetLang: string = "tr"
+): Promise<string> {
+  const trimmed = text?.trim();
+  if (!trimmed) return text || "";
+
+  // If text exceeds safe threshold, split into semantic chunks and translate sequentially
+  if (trimmed.length > 450) {
+    const chunks = splitIntoChunks(trimmed, 450);
+    const translatedChunks: string[] = [];
+
+    for (const chunk of chunks) {
+      try {
+        const tr = await translateSingleMyMemory(chunk, targetLang);
+        translatedChunks.push(tr);
+      } catch (err) {
+        console.warn("[Translator] MyMemory chunk fallback note:", err);
+        translatedChunks.push(chunk);
+      }
+    }
+
+    return translatedChunks.join(" ");
+  }
+
+  return translateSingleMyMemory(trimmed, targetLang);
+}
+
+async function translateSingleMyMemory(text: string, targetLang: string): Promise<string> {
+  const query = text.length > 450 ? text.slice(0, 450) : text;
   const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(
     query
   )}&langpair=en|${targetLang}`;
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 5000);
+  const timeoutId = setTimeout(() => controller.abort(), 6000);
 
   try {
     const response = await fetch(url, {
@@ -232,7 +275,7 @@ async function translateWithMyMemory(text: string, targetLang: string): Promise<
     if (!response.ok) throw new Error(`MyMemory returned ${response.status}`);
     const data = await response.json();
     if (data?.responseData?.translatedText) {
-      return data.responseData.translatedText;
+      return decodeHtmlEntities(data.responseData.translatedText);
     }
     throw new Error("No translation returned by MyMemory");
   } finally {
@@ -240,19 +283,39 @@ async function translateWithMyMemory(text: string, targetLang: string): Promise<
   }
 }
 
-function splitIntoChunks(text: string, maxLen: number): string[] {
+export function splitIntoChunks(text: string, maxLen: number): string[] {
   const sentences = text.match(/[^.!?]+[.!?]+(\s|$)|[^.!?]+$/g) || [text];
+  const safeTokens: string[] = [];
+
+  for (const s of sentences) {
+    if (s.length <= maxLen) {
+      safeTokens.push(s);
+    } else {
+      const words = s.split(/(\s+)/);
+      let wordChunk = "";
+      for (const w of words) {
+        if ((wordChunk + w).length > maxLen) {
+          if (wordChunk.trim()) safeTokens.push(wordChunk);
+          wordChunk = w;
+        } else {
+          wordChunk += w;
+        }
+      }
+      if (wordChunk.trim()) safeTokens.push(wordChunk);
+    }
+  }
+
   const chunks: string[] = [];
   let current = "";
 
-  for (const sentence of sentences) {
-    if ((current + sentence).length > maxLen) {
-      if (current) chunks.push(current.trim());
-      current = sentence;
+  for (const token of safeTokens) {
+    if ((current + token).length > maxLen) {
+      if (current.trim()) chunks.push(current.trim());
+      current = token;
     } else {
-      current += sentence;
+      current += token;
     }
   }
-  if (current) chunks.push(current.trim());
-  return chunks;
+  if (current.trim()) chunks.push(current.trim());
+  return chunks.length > 0 ? chunks : [text.slice(0, maxLen)];
 }

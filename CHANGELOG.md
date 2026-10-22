@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.6] - 2026-10-22
+
+### Fixed & Improved
+- **Robust Multi-Chunking for MyMemory Fallback Translation**:
+  - Eliminated the 500-character truncation in `translateWithMyMemory`. Instead of slicing at 500 chars, long plot summaries (>450 chars) are now gracefully segmented along sentence and word boundaries via `splitIntoChunks` and translated sequentially.
+  - Added HTML entity decoding (`&quot;`, `&#39;`, `&amp;`) to clean up escaped characters returned by MyMemory.
+  - Safeguarded `splitIntoChunks` to ensure long unpunctuated sentences or clauses never exceed 450 characters.
+  - Added automated unit and integration tests verifying long text chunking and fallback translation.
+- **Version & Schema Synchronization**:
+  - Synchronized `v1.1.6` across `package.json`, `manifest.ts`, `Header.tsx`, and `layout.tsx` Schema.org `SoftwareApplication` graphs.
+
+---
+
 ## [1.1.5] - 2026-10-22
 
 ### Changed
