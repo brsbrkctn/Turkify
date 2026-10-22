@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.1] - 2026-10-22
+
+### Added & Improved
+- **Clean Transparent Logo & Multi-Resolution Favicons**:
+  - Extracted the authentic transparent logo from the source asset and generated ultra-crisp 512x512 RGBA PNGs and multi-size `.ico` favicons (16x16, 32x32, 48x48), eliminating all dark square borders.
+- **Zero-Layout-Shift Live Preview**:
+  - Locked dimensions for the "DİZİ" / "SERIES" badge, synopsis paragraph, and episode preview boxes so toggling between Cinemeta and Turkify produces zero page jitter or vertical jumping.
+- **Accurate Addon Descriptions**:
+  - Re-labeled "Ana Sayfa Popüler Katalogları" to "Popüler İçerik Katalogları (Önerilen)", clarifying that it provides popular global movies/series translated into Turkish rather than local Turkish cinema.
+  - Refined "Zengin Medya ve Oyuncular" to "Gelişmiş Görsel ve Oyuncu Detayları (Önerilen)", removing marketing claims and focusing on official high-res TMDB artwork and photo-backed cast.
+- **Manifest Catalog Names Clarity**:
+  - Manifest catalog labels updated to *"Turkify: Popüler Filmler (Türkçe)"* and *"Turkify: Popüler Diziler (Türkçe)"*.
+
+---
+
 ## [1.1.0] - 2026-10-22
 
 ### Added & Improved

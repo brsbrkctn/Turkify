@@ -39,7 +39,7 @@ export function LivePreview() {
         </div>
       </div>
 
-      {/* Mock Stremio / Nuvio Card */}
+      {/* Mock Stremio / Nuvio Card with Zero-Layout-Shift Fixed Dimensions */}
       <div className="relative rounded-2xl bg-gradient-to-br from-slate-900/90 via-slate-950 to-black border border-slate-800 overflow-hidden shadow-2xl backdrop-blur-xl">
         {/* Background authentic Breaking Bad backdrop artwork */}
         <div
@@ -59,7 +59,8 @@ export function LivePreview() {
               alt="Breaking Bad Poster"
               className="w-full h-full object-cover"
             />
-            <span className="absolute bottom-2 left-2 z-20 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-sky-600 text-white shadow">
+            {/* Fixed-width badge so width never shifts */}
+            <span className="absolute bottom-2 left-2 z-20 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-sky-600 text-white shadow w-14 text-center flex items-center justify-center">
               {isTurkish ? "DİZİ" : "SERIES"}
             </span>
           </div>
@@ -74,7 +75,7 @@ export function LivePreview() {
               <span className="flex items-center gap-1 font-semibold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20">
                 <Star className="w-3 h-3 fill-amber-400" /> 9.5
               </span>
-              <span className="text-slate-300 font-medium">
+              <span className="text-slate-300 font-medium inline-block min-w-[130px]">
                 {isTurkish ? "5 Sezon • 62 Bölüm" : "5 Seasons • 62 Episodes"}
               </span>
             </div>
@@ -99,20 +100,20 @@ export function LivePreview() {
               </div>
             </div>
 
-            {/* Synopsis / Description */}
+            {/* Synopsis / Description with stable min-height to prevent vertical layout jump */}
             <div className="rounded-xl p-4 bg-black/50 border border-slate-800/80 text-left">
               <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 flex items-center gap-1.5">
                 <Clapperboard className="w-3.5 h-3.5 text-sky-400" />
                 {isTurkish ? "Dizi Konusu" : "Overview"}
               </h4>
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed min-h-[76px] sm:min-h-[58px] flex items-start">
                 {isTurkish
                   ? "Lise kimya öğretmeni Walter White'a ölümcül bir akciğer kanseri teşhisi konur. Ailesinin finansal geleceğini güvence altına almak için eski öğrencisi Jesse Pinkman ile birlikte metamfetamin üretip satmaya karar verir."
                   : "A high school chemistry teacher diagnosed with inoperable lung cancer turns to manufacturing and selling methamphetamine in order to secure his family's future."}
               </p>
             </div>
 
-            {/* Episode Preview */}
+            {/* Episode Preview with stable min-height */}
             <div className="rounded-xl p-4 bg-slate-900/60 border border-slate-800 text-left">
               <div className="flex items-center justify-between text-xs font-semibold text-slate-300 mb-2">
                 <span className="flex items-center gap-1.5">
@@ -124,7 +125,7 @@ export function LivePreview() {
                   {isTurkish ? "Türkçe Açıklama" : "Original Metadata"}
                 </span>
               </div>
-              <p className="text-xs text-slate-400 leading-relaxed italic">
+              <p className="text-xs text-slate-400 leading-relaxed italic min-h-[38px] flex items-start">
                 {isTurkish
                   ? "Walter, 50. yaş gününde ölümcül kanser olduğunu öğrenir ve ilk uyuşturucu laboratuvarını eski bir karavanda kurar."
                   : "Walter discovers he has stage-3 lung cancer and decides to partner with Jesse to cook meth in a used RV."}

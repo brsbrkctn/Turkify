@@ -7,8 +7,11 @@ export const metadata: Metadata = {
   description:
     "Stremio ve Nuvio için film, dizi ve bölüm açıklamalarını otomatik Türkçe'ye çevirip yüksek hızda sunan açık kaynak eklenti.",
   icons: {
-    icon: "/icon.png",
-    shortcut: "/icon.png",
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/icon.png", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
     apple: "/icon.png",
   },
   keywords: [

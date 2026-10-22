@@ -150,10 +150,10 @@ export function Configurator() {
           >
             <div className="space-y-1 pr-2">
               <span className="text-sm font-semibold text-white block group-hover:text-sky-300 transition-colors">
-                Zengin Medya ve Oyuncular (Önerilen)
+                Gelişmiş Görsel ve Oyuncu Detayları (Önerilen)
               </span>
               <p className="text-xs text-slate-400 leading-relaxed">
-                Cinemeta'nın 3 kişilik sınırlı listesi yerine fotoğraflı 15+ oyuncu kadrosu, yüksek çözünürlüklü 4K afişler ve resmi logolar ekler.
+                Cinemeta'nın temel verileri yerine yüksek çözünürlüklü afişler, net arka plan görselleri ve fotoğraflı oyuncu kadrosunu dahil eder.
               </p>
             </div>
 
@@ -188,10 +188,10 @@ export function Configurator() {
           >
             <div className="space-y-1 pr-2">
               <span className="text-sm font-semibold text-white block group-hover:text-sky-300 transition-colors">
-                Ana Sayfa Popüler Katalogları (Önerilen)
+                Popüler İçerik Katalogları (Önerilen)
               </span>
               <p className="text-xs text-slate-400 leading-relaxed">
-                Stremio ve Nuvio ana sayfanıza 'Popüler Türkçe Filmler' ve 'Popüler Türkçe Diziler' vitrin kataloglarını ekler.
+                Stremio ve Nuvio ana sayfanıza, konuları ve detayları Türkçe'ye çevrilmiş güncel film ve dizi keşif kataloglarını ekler.
               </p>
             </div>
 

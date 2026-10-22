@@ -9,7 +9,7 @@ export function getManifest(baseUrl?: string, config?: AddonConfig): StremioMani
         {
           type: "movie",
           id: "top",
-          name: "Turkify: Popüler Filmler",
+          name: "Turkify: Popüler Filmler (Türkçe)",
           extra: [
             { name: "search", isRequired: false },
             { name: "skip", isRequired: false },
@@ -18,7 +18,7 @@ export function getManifest(baseUrl?: string, config?: AddonConfig): StremioMani
         {
           type: "series",
           id: "top",
-          name: "Turkify: Popüler Diziler",
+          name: "Turkify: Popüler Diziler (Türkçe)",
           extra: [
             { name: "search", isRequired: false },
             { name: "skip", isRequired: false },
@@ -42,7 +42,7 @@ export function getManifest(baseUrl?: string, config?: AddonConfig): StremioMani
 
   return {
     id: "org.brsbrkctn.turkify",
-    version: "1.1.0",
+    version: "1.1.1",
     name: "Turkify (Türkçe)",
     description:
       "Stremio ve Nuvio için film, dizi ve bölüm açıklamalarını otomatik Türkçe'ye çevirip sunan yüksek hızlı meta eklentisi.",
