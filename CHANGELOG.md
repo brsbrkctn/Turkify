@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.9] - 2026-10-22
+
+### Added & Improved
+- **Official Brand Identity & Favicon Integration**:
+  - Integrated the official high-resolution Turkify globe/translation logo (`/logo.png`, `/icon.png`, `/app/icon.png`) as the website logo, browser favicon, and Stremio/Nuvio catalog icon.
+  - Re-themed website visual identity with a refined Oceanic Midnight & Cyan/Sky Blue aesthetic with Sunset Coral accents (`#0284c7`, `#38bdf8`, `#ea580c`), perfectly matching the brand icon.
+- **Fixed Configurator Client Crash**:
+  - Fixed `ReferenceError: Buffer is not defined` crash in `config-helper.ts` by introducing safe browser-side base64url encoding for client components. Toggling options in the configurator now updates the manifest URL instantly without throwing exceptions.
+- **Toggle Switch Redesign**:
+  - Replaced native unstyled checkboxes with custom responsive Apple-style Toggle Switch Pills, ensuring identical sizes, smooth transition states, and eliminating browser rendering discrepancies.
+- **UI Copy Polish**:
+  - Updated secondary copy action button label concisely to "Kopyala".
+  - Upgraded Live Preview, Hero, and Guide cards with sleek glassmorphism and subtle lighting.
+
+---
+
 ## [1.0.8] - 2026-10-22
 
 ### Added & Improved

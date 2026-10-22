@@ -2,9 +2,15 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://turkify-addon.vercel.app"),
   title: "Turkify — Stremio & Nuvio Türkçe Meta Eklentisi",
   description:
     "Stremio ve Nuvio için film, dizi ve bölüm açıklamalarını otomatik Türkçe'ye çevirip yüksek hızda sunan açık kaynak eklenti.",
+  icons: {
+    icon: "/icon.png",
+    shortcut: "/icon.png",
+    apple: "/icon.png",
+  },
   keywords: [
     "stremio",
     "nuvio",
@@ -23,14 +29,16 @@ export const metadata: Metadata = {
       "Dizi ve filmlerin konularını, türlerini ve tüm bölüm özetlerini anında Türkçe'ye çevirir.",
     url: "https://turkify-addon.vercel.app",
     siteName: "Turkify",
+    images: [{ url: "/logo.png", width: 512, height: 512, alt: "Turkify Logo" }],
     locale: "tr_TR",
     type: "website",
   },
   twitter: {
-    card: "summary_large_image",
+    card: "summary",
     title: "Turkify — Stremio & Nuvio Türkçe Meta Eklentisi",
     description:
       "Stremio ve Nuvio içeriklerini otomatik Türkçe'ye çevirip sunan eklenti.",
+    images: ["/logo.png"],
   },
 };
 
@@ -41,7 +49,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="tr" className="dark">
-      <body className="min-h-screen bg-[#090a0f] text-gray-100 antialiased selection:bg-rose-500 selection:text-white">
+      <body className="min-h-screen bg-[#070b14] text-slate-100 antialiased selection:bg-sky-500 selection:text-white">
         {children}
       </body>
     </html>

@@ -1,15 +1,15 @@
 "use client";
 
 import React from "react";
-import { Github, Heart, Film } from "lucide-react";
+import { Github } from "lucide-react";
 
 export function Footer() {
   return (
-    <footer className="w-full border-t border-gray-800/80 bg-black/60 py-8 px-4 text-center">
-      <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-500">
-        <div className="flex items-center gap-2">
-          <Film className="w-4 h-4 text-rose-500" />
-          <span className="font-semibold text-gray-300">Turkify</span>
+    <footer className="w-full border-t border-slate-800/80 bg-[#070b14]/90 py-8 px-4 text-center mt-12">
+      <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+        <div className="flex items-center gap-2.5">
+          <img src="/logo.png" alt="Logo" className="w-4 h-4 object-contain rounded" />
+          <span className="font-semibold text-slate-200">Turkify</span>
           <span>• Açık Kaynak Türkçe Stremio & Nuvio Meta Eklentisi</span>
         </div>
 
@@ -18,7 +18,7 @@ export function Footer() {
             href="https://github.com/brsbrkctn/Turkify"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors"
+            className="flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors"
           >
             <Github className="w-4 h-4" />
             <span>GitHub</span>
@@ -30,7 +30,7 @@ export function Footer() {
               href="https://github.com/brsbrkctn"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-gray-300 hover:text-rose-400 font-medium transition-colors"
+              className="text-slate-200 hover:text-sky-400 font-medium transition-colors"
             >
               Barış Berke Çetin
             </a>

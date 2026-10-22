@@ -4,8 +4,15 @@ export function parseConfig(configParam?: string): AddonConfig {
   if (!configParam) return {};
 
   try {
-    // 1. Try decoding Base64 JSON
-    const decoded = Buffer.from(configParam, "base64").toString("utf-8");
+    let decoded = "";
+    if (typeof window !== "undefined") {
+      let b64 = configParam.replace(/-/g, "+").replace(/_/g, "/");
+      while (b64.length % 4) b64 += "=";
+      decoded = decodeURIComponent(escape(atob(b64)));
+    } else {
+      decoded = Buffer.from(configParam, "base64url").toString("utf-8");
+    }
+
     const parsed = JSON.parse(decoded);
     if (typeof parsed === "object" && parsed !== null) {
       return {
@@ -30,5 +37,11 @@ export function parseConfig(configParam?: string): AddonConfig {
 
 export function encodeConfig(config: AddonConfig): string {
   const json = JSON.stringify(config);
+  if (typeof window !== "undefined") {
+    return btoa(unescape(encodeURIComponent(json)))
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/, "");
+  }
   return Buffer.from(json).toString("base64url");
 }
