@@ -32,7 +32,7 @@ export async function GET(
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET",
         "Content-Type": "application/json; charset=utf-8",
-        "Cache-Control": "no-cache, no-store, must-revalidate",
+        "Cache-Control": "public, max-age=300, stale-while-revalidate=3600",
       },
     });
   } catch (err) {

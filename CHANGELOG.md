@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.5] - 2026-10-22
+
+### Changed
+- **Balanced Smart Caching**:
+  - Replaced aggressive `no-cache` with a 5-minute client cache (`public, max-age=300, stale-while-revalidate=3600`). Protects Vercel and Supabase quota while preventing 24-hour client stale lockups.
+
+---
+
 ## [1.0.4] - 2026-10-22
 
 ### Fixed
