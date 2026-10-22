@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.7] - 2026-10-22
+
+### Added
+- **Intelligent Cache Upgrades & TMDB Synchronization**:
+  - Addon now dynamically detects and upgrades legacy Supabase cache entries with official TMDB Turkish overviews, titles, and episode names.
+  - Automatic detection and on-the-fly repair for missing (`undefined`) or English episode synopses and titles across all TV seasons.
+  - Cast headshot photos (`https://image.tmdb.org/t/p/w276_and_h350_face/...`) embedded into `links` array with `profile` and `thumbnail` properties to enhance actor image presentation in Nuvio and third-party Web clients.
+  - Executed database-wide sync (`sync-all-tmdb.mjs`) upgrading all 82 existing catalog entries in Supabase.
+
+---
+
 ## [1.0.6] - 2026-10-22
 
 ### Added

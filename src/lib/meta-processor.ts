@@ -1,5 +1,5 @@
 import { fetchCinemetaMeta } from "./cinemeta";
-import { fetchTMDBMeta, fetchTMDBSeasonEpisodes } from "./tmdb";
+import { fetchTMDBMeta, fetchTMDBSeasonEpisodes, TMDBCastMember } from "./tmdb";
 import { translateGenres } from "./genres";
 import { translateText, batchTranslate } from "./translator";
 import { getCachedMeta, saveCachedMeta } from "./supabase";
@@ -16,6 +16,26 @@ function isLikelyEnglish(text?: string): boolean {
   return /\b(the|and|with|from|after|before|when|into|their|about|while|which|where|this|that|they|have|been|during|discovers)\b/i.test(
     text
   );
+}
+
+/**
+ * Helper to build enriched links array containing cast profile photos for clients like Nuvio.
+ */
+function buildEnrichedLinks(baseLinks?: any[], tmdbCast?: TMDBCastMember[]) {
+  const links = [...(baseLinks || [])];
+  if (tmdbCast && tmdbCast.length > 0) {
+    const nonCastLinks = links.filter((l) => l.category !== "Cast");
+    const tmdbCastLinks = tmdbCast.map((c) => ({
+      name: c.name,
+      category: "Cast",
+      url: `stremio:///search?search=${encodeURIComponent(c.name)}`,
+      profile: c.profilePath,
+      thumbnail: c.profilePath,
+      character: c.character,
+    }));
+    return [...nonCastLinks, ...tmdbCastLinks];
+  }
+  return links;
 }
 
 /**
@@ -59,48 +79,136 @@ export async function getTranslatedMetadata(
     const cached = await getCachedMeta(cleanId);
     if (cached) {
       let cachedVideos = cached.videos;
+      let cachedOverview = cached.overview;
+      let cachedTitle = cached.title;
+      let cachedSource = cached.source || "cache";
       let needsCacheUpdate = false;
 
-      // Check if any episode in cachedVideos is still English
+      // 3a. Upgrade series/movie overview and title from TMDB if available and not yet from TMDB
+      if (tmdbData?.overview && tmdbData.overview.trim().length > 15) {
+        if (cachedSource !== "tmdb" || isLikelyEnglish(cachedOverview)) {
+          cachedOverview = tmdbData.overview.trim();
+          cachedSource = "tmdb";
+          needsCacheUpdate = true;
+        }
+      }
+      if (tmdbData?.title && (cachedSource !== "tmdb" || isLikelyEnglish(cachedTitle))) {
+        cachedTitle = tmdbData.title;
+        needsCacheUpdate = true;
+      }
+
+      // 3b. Check if any episode in cachedVideos is missing or still English
       if (
         type === "series" &&
         cachedVideos &&
         cachedVideos.length > 0 &&
         config.translateEpisodes !== false
       ) {
-        const englishVideos = cachedVideos.filter((v) =>
-          isLikelyEnglish(v.overview || v.description)
+        const problematicEpisodes = cachedVideos.filter(
+          (v) =>
+            !v.overview ||
+            v.overview.trim().length < 6 ||
+            isLikelyEnglish(v.overview || v.description) ||
+            (v.name && isLikelyEnglish(v.name))
         );
 
-        if (englishVideos.length > 0) {
-          const textsToTranslate = englishVideos.map(
-            (v) => v.overview || v.description || ""
-          );
-          const translatedOverviews = await batchTranslate(textsToTranslate);
+        if (problematicEpisodes.length > 0) {
+          // Fetch TMDB seasons for these episodes if tmdbId is present
+          const seasonsToFetch = Array.from(
+            new Set(problematicEpisodes.map((v) => v.season))
+          ).filter((s) => s > 0);
+
+          const tmdbSeasonMaps = new Map<number, Map<number, { title?: string; overview?: string }>>();
+          if (tmdbId) {
+            await Promise.all(
+              seasonsToFetch.map(async (s) => {
+                const sMap = await fetchTMDBSeasonEpisodes(tmdbId, s);
+                if (sMap.size > 0) tmdbSeasonMaps.set(s, sMap);
+              })
+            );
+          }
+
+          // Apply TMDB data first
+          const stillNeedsGoogle: { idOrIdx: string | number; text: string }[] = [];
 
           cachedVideos = cachedVideos.map((v) => {
-            const matchIndex = englishVideos.findIndex(
-              (ev) =>
-                ev.id === v.id ||
-                (ev.season === v.season && ev.number === v.number)
-            );
-            if (matchIndex !== -1 && translatedOverviews[matchIndex]) {
-              const trOverview = translatedOverviews[matchIndex];
-              return {
-                ...v,
-                overview: trOverview,
-                description: trOverview,
-              };
+            const sMap = tmdbSeasonMaps.get(v.season);
+            const epNum = v.number ?? v.episode;
+            const tmdbEp = epNum !== undefined ? sMap?.get(epNum) : undefined;
+
+            let updatedTitle = v.name || v.title;
+            let updatedOverview = v.overview || v.description;
+
+            // If TMDB has a Turkish title and current title is English
+            if (tmdbEp?.title && (!updatedTitle || isLikelyEnglish(updatedTitle))) {
+              updatedTitle = tmdbEp.title;
+              needsCacheUpdate = true;
             }
-            return v;
+
+            // If TMDB has a Turkish overview
+            if (
+              tmdbEp?.overview &&
+              tmdbEp.overview.trim().length > 6 &&
+              (!updatedOverview || isLikelyEnglish(updatedOverview))
+            ) {
+              updatedOverview = tmdbEp.overview.trim();
+              needsCacheUpdate = true;
+            }
+
+            // If still missing or English, queue for Google Translate
+            if (!updatedOverview || isLikelyEnglish(updatedOverview)) {
+              const baseEp = baseMeta.videos?.find(
+                (bv) => bv.id === v.id || (bv.season === v.season && bv.number === v.number)
+              );
+              const rawText = baseEp?.overview || baseEp?.description || updatedOverview || "";
+              if (rawText.trim().length > 0) {
+                stillNeedsGoogle.push({ idOrIdx: v.id || `${v.season}:${v.number}`, text: rawText });
+              }
+            }
+
+            return {
+              ...v,
+              name: updatedTitle,
+              title: updatedTitle,
+              overview: updatedOverview,
+              description: updatedOverview,
+            };
           });
-          needsCacheUpdate = true;
+
+          // Translate remaining with Google Translate
+          if (stillNeedsGoogle.length > 0) {
+            try {
+              const texts = stillNeedsGoogle.map((item) => item.text);
+              const trResults = await batchTranslate(texts);
+              stillNeedsGoogle.forEach((item, i) => {
+                const tr = trResults[i];
+                if (tr) {
+                  const vIdx = cachedVideos!.findIndex(
+                    (v) => (v.id || `${v.season}:${v.number}`) === item.idOrIdx
+                  );
+                  if (vIdx !== -1) {
+                    cachedVideos![vIdx] = {
+                      ...cachedVideos![vIdx],
+                      overview: tr,
+                      description: tr,
+                    };
+                    needsCacheUpdate = true;
+                  }
+                }
+              });
+            } catch (err) {
+              console.warn(`[MetaProcessor] Live cache episode translation fallback:`, err);
+            }
+          }
         }
       }
 
       if (needsCacheUpdate) {
         const updatedRecord: CachedMetadata = {
           ...cached,
+          title: cachedTitle,
+          overview: cachedOverview,
+          source: cachedSource,
           videos: cachedVideos,
           updated_at: new Date().toISOString(),
         };
@@ -110,8 +218,8 @@ export async function getTranslatedMetadata(
       }
 
       const displayName =
-        config.turkishTitle && cached.title
-          ? cached.title
+        config.turkishTitle && cachedTitle
+          ? cachedTitle
           : cached.original_title || baseMeta.name;
 
       // Merge videos: use baseMeta video structure enriched with cached translations
@@ -124,13 +232,13 @@ export async function getTranslatedMetadata(
               (cv.season === bv.season &&
                 (cv.number === bv.number || cv.episode === bv.episode))
           );
-          if (cv && cv.overview) {
+          if (cv && (cv.overview || cv.title || cv.name)) {
             return {
               ...bv,
               name: cv.title || cv.name || bv.name,
               title: cv.title || cv.name || bv.title,
-              overview: cv.overview,
-              description: cv.description || cv.overview,
+              overview: cv.overview || bv.overview,
+              description: cv.description || cv.overview || bv.description,
             };
           }
           return bv;
@@ -143,15 +251,18 @@ export async function getTranslatedMetadata(
           ? tmdbData.cast.map((c) => c.name)
           : cached.cast || baseMeta.cast;
 
+      const enrichedLinks = buildEnrichedLinks(baseMeta.links, tmdbData?.cast);
+
       return {
         meta: {
           ...baseMeta,
           name: displayName,
           originalName: baseMeta.name,
-          description: cached.overview || baseMeta.description,
+          description: cachedOverview || baseMeta.description,
           genres: cached.genres || translateGenres(baseMeta.genres),
           videos: mergedVideos,
           cast: finalCast,
+          links: enrichedLinks,
           moviedb_id: tmdbId,
         },
       };
@@ -314,6 +425,8 @@ export async function getTranslatedMetadata(
   const displayName =
     config.turkishTitle && turkishTitle ? turkishTitle : originalTitle;
 
+  const enrichedLinks = buildEnrichedLinks(baseMeta.links, tmdbData?.cast);
+
   return {
     meta: {
       ...baseMeta,
@@ -323,6 +436,7 @@ export async function getTranslatedMetadata(
       genres: turkishGenres,
       videos: translatedVideos,
       cast: finalCast,
+      links: enrichedLinks,
       moviedb_id: tmdbId,
     },
   };
