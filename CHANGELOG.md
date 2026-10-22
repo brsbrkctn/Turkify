@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.6] - 2026-10-22
+
+### Added
+- **TMDB Full Integration**:
+  - Integrated official TMDB API (`TMDB_API_KEY`) across movies and TV series.
+  - Enriched TV series with official Turkish season episode titles and synopses from TMDB.
+  - Enriched movie and series cast lists with 15+ actors and character names from TMDB credits.
+
+---
+
 ## [1.0.5] - 2026-10-22
 
 ### Changed

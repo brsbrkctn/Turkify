@@ -1,5 +1,5 @@
 import { fetchCinemetaMeta } from "./cinemeta";
-import { fetchTMDBMeta } from "./tmdb";
+import { fetchTMDBMeta, fetchTMDBSeasonEpisodes } from "./tmdb";
 import { translateGenres } from "./genres";
 import { translateText, batchTranslate } from "./translator";
 import { getCachedMeta, saveCachedMeta } from "./supabase";
@@ -20,9 +20,11 @@ function isLikelyEnglish(text?: string): boolean {
 
 /**
  * Core metadata orchestration function.
- * 1. Fetches base metadata from Cinemeta (ensures moviedb_id for actor photos, trailers, links).
- * 2. Checks Supabase cache for Turkish translations.
- * 3. On cache miss: translates overview, genres, episodes -> saves to Supabase -> returns merged meta.
+ * 1. Fetches base metadata from Cinemeta.
+ * 2. Checks Supabase cache for existing Turkish translations.
+ * 3. Enriches with TMDB for official Turkish synopses, episode names, and full cast.
+ * 4. Falls back to Google Translate batch delimiter engine for missing texts.
+ * 5. Returns complete metadata with moviedb_id and full cast.
  */
 export async function getTranslatedMetadata(
   type: "movie" | "series",
@@ -37,13 +39,22 @@ export async function getTranslatedMetadata(
   }
 
   // 1. Fetch base metadata from Cinemeta
-  // This provides full rich fields: moviedb_id (for Nuvio actor photos), tvdb_id, trailers, links, cast, videos
   const baseMeta = await fetchCinemetaMeta(type, cleanId);
   if (!baseMeta) {
     return { meta: null };
   }
 
-  // 2. Check Supabase cache for existing translations
+  // 2. Fetch TMDB data in parallel for rich cast, Turkish title & overview
+  let tmdbData: Awaited<ReturnType<typeof fetchTMDBMeta>> = null;
+  try {
+    tmdbData = await fetchTMDBMeta(type, cleanId);
+  } catch (err) {
+    console.warn(`[MetaProcessor] TMDB fetch note for ${cleanId}:`, err);
+  }
+
+  const tmdbId = tmdbData?.tmdbId || (baseMeta as any).moviedb_id;
+
+  // 3. Check Supabase cache for existing translations
   try {
     const cached = await getCachedMeta(cleanId);
     if (cached) {
@@ -98,13 +109,12 @@ export async function getTranslatedMetadata(
         );
       }
 
-      // Merge baseMeta with cached translations so no rich fields (moviedb_id, trailers, actor photos) are stripped!
       const displayName =
         config.turkishTitle && cached.title
           ? cached.title
           : cached.original_title || baseMeta.name;
 
-      // Merge videos: use baseMeta video structure (with thumbnails & tvdb_id) enriched with cached translations
+      // Merge videos: use baseMeta video structure enriched with cached translations
       let mergedVideos: MetaVideo[] | undefined = baseMeta.videos;
       if (baseMeta.videos && cachedVideos) {
         mergedVideos = baseMeta.videos.map((bv) => {
@@ -117,6 +127,8 @@ export async function getTranslatedMetadata(
           if (cv && cv.overview) {
             return {
               ...bv,
+              name: cv.title || cv.name || bv.name,
+              title: cv.title || cv.name || bv.title,
               overview: cv.overview,
               description: cv.description || cv.overview,
             };
@@ -124,6 +136,12 @@ export async function getTranslatedMetadata(
           return bv;
         });
       }
+
+      // Merge cast from TMDB if available (15+ actors instead of 3)
+      const finalCast =
+        tmdbData?.cast && tmdbData.cast.length > 0
+          ? tmdbData.cast.map((c) => c.name)
+          : cached.cast || baseMeta.cast;
 
       return {
         meta: {
@@ -133,6 +151,8 @@ export async function getTranslatedMetadata(
           description: cached.overview || baseMeta.description,
           genres: cached.genres || translateGenres(baseMeta.genres),
           videos: mergedVideos,
+          cast: finalCast,
+          moviedb_id: tmdbId,
         },
       };
     }
@@ -140,25 +160,20 @@ export async function getTranslatedMetadata(
     console.warn(`[MetaProcessor] Cache lookup error for ${cleanId}:`, err);
   }
 
-  // 3. Cold Cache Miss: Check TMDB for native Turkish metadata
+  // 4. Cold Cache Miss: Assemble Turkish Title & Overview
   let turkishTitle = baseMeta.name;
   let turkishOverview: string | null = null;
   let source = "cinemeta";
 
-  try {
-    const tmdbData = await fetchTMDBMeta(type, cleanId);
-    if (tmdbData) {
-      if (tmdbData.title) turkishTitle = tmdbData.title;
-      if (tmdbData.overview && tmdbData.overview.trim().length > 10) {
-        turkishOverview = tmdbData.overview.trim();
-        source = "tmdb";
-      }
+  if (tmdbData) {
+    if (tmdbData.title) turkishTitle = tmdbData.title;
+    if (tmdbData.overview && tmdbData.overview.trim().length > 10) {
+      turkishOverview = tmdbData.overview.trim();
+      source = "tmdb";
     }
-  } catch (err) {
-    console.warn(`[MetaProcessor] TMDB fetch error for ${cleanId}:`, err);
   }
 
-  // 4. If TMDB has no Turkish overview, auto-translate Cinemeta description
+  // Fallback to Google Translate if TMDB had no Turkish overview
   if (!turkishOverview && baseMeta.description) {
     try {
       turkishOverview = await translateText(baseMeta.description);
@@ -172,7 +187,7 @@ export async function getTranslatedMetadata(
   // 5. Translate genres to Turkish
   const turkishGenres = translateGenres(baseMeta.genres);
 
-  // 6. Handle Series Episodes (Fast delimiter batch translation for up to 100 episodes)
+  // 6. Handle Series Episodes (TMDB official Turkish first -> Google Translate batch fallback)
   let translatedVideos: MetaVideo[] | undefined = baseMeta.videos;
   const shouldTranslateEpisodes = config.translateEpisodes !== false;
 
@@ -184,33 +199,85 @@ export async function getTranslatedMetadata(
   ) {
     try {
       const allVideos = [...baseMeta.videos];
-      const MAX_VIDEOS = 100;
+      const MAX_VIDEOS = 120;
       const videosToProcess = allVideos.slice(0, MAX_VIDEOS);
       const remainingVideos = allVideos.slice(MAX_VIDEOS);
 
-      const episodesToTranslate = videosToProcess.map(
-        (v) => v.overview || v.description || ""
-      );
+      // 6a. Try to populate from TMDB seasons if tmdbId is available
+      const tmdbSeasonMaps = new Map<number, Map<number, { title?: string; overview?: string }>>();
+      if (tmdbId) {
+        const uniqueSeasons = Array.from(
+          new Set(videosToProcess.map((v) => v.season))
+        ).filter((s) => s > 0);
 
-      const translatedOverviews = await batchTranslate(episodesToTranslate);
+        await Promise.all(
+          uniqueSeasons.map(async (s) => {
+            const seasonMap = await fetchTMDBSeasonEpisodes(tmdbId, s);
+            if (seasonMap.size > 0) {
+              tmdbSeasonMaps.set(s, seasonMap);
+            }
+          })
+        );
+      }
 
-      const processedVideos = videosToProcess.map((v, idx) => {
-        const trOverview = translatedOverviews[idx] || v.overview || v.description;
+      // Check which episodes got TMDB Turkish overview and which still need Google translation
+      const needsGoogleTranslation: { index: number; text: string }[] = [];
+      const intermediateVideos: MetaVideo[] = videosToProcess.map((v, idx) => {
+        const sMap = tmdbSeasonMaps.get(v.season);
+        const epNum = v.number ?? v.episode ?? (idx + 1);
+        const tmdbEp = sMap?.get(epNum);
+
+        let epTitle = tmdbEp?.title || v.name || v.title;
+        let epOverview = tmdbEp?.overview || v.overview || v.description || "";
+
+        // If TMDB had no overview or it's English, mark for Google batch translation
+        if (!epOverview || isLikelyEnglish(epOverview)) {
+          const rawText = v.overview || v.description || "";
+          if (rawText.trim().length > 0) {
+            needsGoogleTranslation.push({ index: idx, text: rawText });
+          }
+        }
+
         return {
           ...v,
-          overview: trOverview,
-          description: trOverview,
+          name: epTitle,
+          title: epTitle,
+          overview: epOverview,
+          description: epOverview,
         };
       });
 
-      translatedVideos = [...processedVideos, ...remainingVideos];
+      // 6b. Run batch delimiter translation for any remaining English episodes
+      if (needsGoogleTranslation.length > 0) {
+        const texts = needsGoogleTranslation.map((item) => item.text);
+        const trResults = await batchTranslate(texts);
+
+        needsGoogleTranslation.forEach((item, i) => {
+          const trText = trResults[i];
+          if (trText) {
+            intermediateVideos[item.index] = {
+              ...intermediateVideos[item.index],
+              overview: trText,
+              description: trText,
+            };
+          }
+        });
+      }
+
+      translatedVideos = [...intermediateVideos, ...remainingVideos];
     } catch (err) {
       console.warn(`[MetaProcessor] Episode batch translation error:`, err);
       translatedVideos = baseMeta.videos;
     }
   }
 
-  // 7. Assemble final metadata & cache
+  // 7. Assemble final cast (TMDB 15+ actors preferred over Cinemeta 3 actors)
+  const finalCast =
+    tmdbData?.cast && tmdbData.cast.length > 0
+      ? tmdbData.cast.map((c) => c.name)
+      : baseMeta.cast;
+
+  // 8. Assemble final metadata & cache
   const finalOverview = turkishOverview || baseMeta.description || "";
   const originalTitle = baseMeta.name;
 
@@ -222,19 +289,19 @@ export async function getTranslatedMetadata(
     overview: finalOverview,
     genres: turkishGenres,
     videos: translatedVideos,
-    poster: baseMeta.poster,
-    background: baseMeta.background,
+    poster: tmdbData?.posterPath || baseMeta.poster,
+    background: tmdbData?.backdropPath || baseMeta.background,
     logo: baseMeta.logo,
     imdb_rating: baseMeta.imdbRating,
     release_info: baseMeta.releaseInfo || (baseMeta.year ? String(baseMeta.year) : undefined),
     runtime: baseMeta.runtime,
     director: baseMeta.director,
-    cast: baseMeta.cast,
+    cast: finalCast,
     source,
     updated_at: new Date().toISOString(),
   };
 
-  // Persist to Supabase with 2.5s race to avoid serverless freeze
+  // Persist to Supabase with safety timeout race
   try {
     await Promise.race([
       saveCachedMeta(toCache),
@@ -255,6 +322,8 @@ export async function getTranslatedMetadata(
       description: finalOverview,
       genres: turkishGenres,
       videos: translatedVideos,
+      cast: finalCast,
+      moviedb_id: tmdbId,
     },
   };
 }
