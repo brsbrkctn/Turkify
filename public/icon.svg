@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e11d48"/>
+      <stop offset="100%" stop-color="#881337"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fb7185"/>
+      <stop offset="100%" stop-color="#e11d48"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="128" fill="url(#bg)"/>
+  <!-- Movie slate & T letter -->
+  <circle cx="256" cy="256" r="160" fill="none" stroke="url(#glow)" stroke-width="16" opacity="0.4"/>
+  <path d="M176 160h160v48h-56v160h-48V208h-56z" fill="#ffffff"/>
+  <circle cx="340" cy="180" r="18" fill="#facc15"/>
+</svg>

@@ -1,0 +1,41 @@
+export const GENRE_MAP: Record<string, string> = {
+  Action: "Aksiyon",
+  Adventure: "Macera",
+  Animation: "Animasyon",
+  Anime: "Anime",
+  Biography: "Biyografi",
+  Comedy: "Komedi",
+  Crime: "Suç",
+  Documentary: "Belgesel",
+  Drama: "Dram",
+  Family: "Aile",
+  Fantasy: "Fantastik",
+  "Film-Noir": "Kara Film",
+  Game: "Oyun",
+  "Game-Show": "Yarışma",
+  History: "Tarih",
+  Horror: "Korku",
+  Music: "Müzik",
+  Musical: "Müzikal",
+  Mystery: "Gizem",
+  News: "Haber",
+  Reality: "Reality",
+  "Reality-TV": "Reality TV",
+  Romance: "Romantik",
+  "Sci-Fi": "Bilim Kurgu",
+  "Science Fiction": "Bilim Kurgu",
+  Short: "Kısa Film",
+  Sport: "Spor",
+  Superhero: "Süper Kahraman",
+  "Talk-Show": "Talk Show",
+  Thriller: "Gerilim",
+  "TV Movie": "TV Filmi",
+  War: "Savaş",
+  "War & Politics": "Savaş & Politika",
+  Western: "Vahşi Batı",
+};
+
+export function translateGenres(genres?: string[]): string[] {
+  if (!genres || !Array.isArray(genres)) return [];
+  return genres.map((g) => GENRE_MAP[g] || GENRE_MAP[g.trim()] || g);
+}
