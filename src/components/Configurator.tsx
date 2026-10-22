@@ -25,7 +25,7 @@ export function Configurator() {
     ? isDefault
       ? `${origin}/manifest.json`
       : `${origin}/${configString}/manifest.json`
-    : "https://turkify.vercel.app/manifest.json";
+    : "https://turkify-addon.vercel.app/manifest.json";
 
   const stremioInstallUrl = manifestUrl.replace(/^https?:\/\//, "stremio://");
 

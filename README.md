@@ -22,12 +22,12 @@ A high-performance, open-source metadata provider addon for **Stremio** and **Nu
 ## 🚀 Quick Start & Installation
 
 ### Stremio
-1. Visit the web configurator at `https://turkify.vercel.app`.
-2. Click **"Stremio'ya Otomatik Ekle"** (or open `stremio://turkify.vercel.app/manifest.json`).
+1. Visit the web configurator at `https://turkify-addon.vercel.app`.
+2. Click **"Stremio'ya Otomatik Ekle"** (or open `stremio://turkify-addon.vercel.app/manifest.json`).
 3. Click **Install** in Stremio.
 
 ### Nuvio
-1. Copy the addon manifest URL: `https://turkify.vercel.app/manifest.json`.
+1. Copy the addon manifest URL: `https://turkify-addon.vercel.app/manifest.json`.
 2. Open Nuvio and navigate to **Settings > Content & Discovery > Addons**.
 3. Paste the URL into the **Addon URL** field and save.
 

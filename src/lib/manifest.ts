@@ -11,13 +11,7 @@ export function getManifest(baseUrl?: string): StremioManifest {
       "Stremio ve Nuvio için film, dizi ve bölüm açıklamalarını otomatik Türkçe'ye çevirip sunan yüksek hızlı meta eklentisi.",
     logo: `${origin}/icon.svg`,
     background: `${origin}/background.jpg`,
-    resources: [
-      {
-        name: "meta",
-        types: ["movie", "series"],
-        idPrefixes: ["tt"],
-      },
-    ],
+    resources: ["meta"],
     types: ["movie", "series"],
     idPrefixes: ["tt"],
     catalogs: [],

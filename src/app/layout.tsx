@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     title: "Turkify — Stremio & Nuvio Türkçe Meta Eklentisi",
     description:
       "Dizi ve filmlerin konularını, türlerini ve tüm bölüm özetlerini anında Türkçe'ye çevirir.",
-    url: "https://turkify.vercel.app",
+    url: "https://turkify-addon.vercel.app",
     siteName: "Turkify",
     locale: "tr_TR",
     type: "website",
