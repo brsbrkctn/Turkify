@@ -157,3 +157,76 @@ export async function fetchTMDBSeasonEpisodes(
 
   return map;
 }
+
+export interface TMDBSearchResult {
+  id: string; // IMDb ID (tt...)
+  type: "movie" | "series";
+  name: string;
+  poster?: string;
+  background?: string;
+  description?: string;
+  releaseInfo?: string;
+  imdbRating?: string;
+}
+
+/**
+ * Searches TMDB for movies or series with high accuracy, returning verified IMDb IDs.
+ */
+export async function searchTMDB(
+  type: "movie" | "series",
+  query: string
+): Promise<TMDBSearchResult[]> {
+  const apiKey = process.env.TMDB_API_KEY || "e37106e867ffbc3f2b8483f2f85c010b";
+  if (!apiKey || !query.trim()) return [];
+
+  const endpoint = type === "series" ? "tv" : "movie";
+  try {
+    const url = `${TMDB_BASE_URL}/search/${endpoint}?query=${encodeURIComponent(
+      query.trim()
+    )}&language=tr-TR&api_key=${apiKey}`;
+
+    const res = await fetch(url, { next: { revalidate: 3600 } });
+    if (!res.ok) return [];
+
+    const data = await res.json();
+    if (!Array.isArray(data.results) || data.results.length === 0) return [];
+
+    const topResults = data.results.slice(0, 10);
+    const mapped = await Promise.all(
+      topResults.map(async (item: any) => {
+        try {
+          const extUrl = `${TMDB_BASE_URL}/${endpoint}/${item.id}/external_ids?api_key=${apiKey}`;
+          const extRes = await fetch(extUrl, { next: { revalidate: 86400 } });
+          if (!extRes.ok) return null;
+          const extData = await extRes.json();
+          if (!extData.imdb_id || !extData.imdb_id.startsWith("tt")) return null;
+
+          const year = (item.release_date || item.first_air_date || "").slice(0, 4);
+          const rating = item.vote_average ? String(item.vote_average.toFixed(1)) : undefined;
+
+          return {
+            id: extData.imdb_id,
+            type,
+            name: item.title || item.name || item.original_title || item.original_name,
+            poster: item.poster_path
+              ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
+              : undefined,
+            background: item.backdrop_path
+              ? `https://image.tmdb.org/t/p/original${item.backdrop_path}`
+              : undefined,
+            description: item.overview || undefined,
+            releaseInfo: year || undefined,
+            imdbRating: rating,
+          };
+        } catch {
+          return null;
+        }
+      })
+    );
+
+    return mapped.filter((item): item is TMDBSearchResult => item !== null);
+  } catch (err) {
+    console.warn(`[TMDB] Search error for ${query}:`, err);
+    return [];
+  }
+}

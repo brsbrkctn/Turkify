@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.8] - 2026-10-22
+
+### Added & Improved
+- **TMDB Precision Search Integration**:
+  - Replaced Cinemeta's legacy fuzzy soundex search with TMDB Search API (`/search/tv` and `/search/movie`). Searching for exact titles like "Bojack" now returns strictly relevant titles (*BoJack Horseman*, *Dragon Ball Z: Bojack Unbound*) and eliminates unrelated results (*Black Mirror*, *Black Clover*, *Hijack*).
+  - Automatically resolves verified IMDb IDs (`tt...`) via TMDB `external_ids` for 100% streaming provider compatibility.
+- **TMDB 4K/HD Catalog Visuals**:
+  - Catalog cards now prioritize official TMDB high-resolution backdrops (`/t/p/original`) and posters (`/t/p/w500`), replacing Metahub placeholders with official marketing art and logos.
+  - Automatically enriches catalog items with official Turkish titles and synopses from TMDB.
+
+---
+
 ## [1.0.7] - 2026-10-22
 
 ### Added

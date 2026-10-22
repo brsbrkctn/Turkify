@@ -1,6 +1,7 @@
 import { translateGenres } from "./genres";
 import { batchTranslate } from "./translator";
 import { getCachedMeta } from "./supabase";
+import { fetchTMDBMeta, searchTMDB } from "./tmdb";
 
 const CINEMETA_URL = "https://v3-cinemeta.strem.io";
 
@@ -17,7 +18,8 @@ export interface CatalogItem {
 }
 
 /**
- * Fetches and translates a catalog of popular titles or search results from Cinemeta.
+ * Fetches and translates a catalog of popular titles or search results.
+ * Prioritizes TMDB for razor-sharp search precision and crisp 4K/HD posters and backdrops.
  */
 export async function getTranslatedCatalog(
   type: "movie" | "series",
@@ -26,6 +28,15 @@ export async function getTranslatedCatalog(
   search?: string
 ): Promise<{ metas: CatalogItem[] }> {
   try {
+    // 1. If search is specified, use TMDB Search API for exact matching and verified IMDb IDs
+    if (search && search.trim().length > 0) {
+      const tmdbResults = await searchTMDB(type, search.trim());
+      if (tmdbResults.length > 0) {
+        return { metas: tmdbResults };
+      }
+    }
+
+    // 2. Fetch popular catalog from Cinemeta
     let url: string;
     if (search && search.trim().length > 0) {
       url = `${CINEMETA_URL}/catalog/${type}/top/search=${encodeURIComponent(
@@ -55,18 +66,49 @@ export async function getTranslatedCatalog(
     // Process top 20 items
     const rawItems = data.metas.slice(0, 20);
 
-    // 1. Check which items are cached in Supabase
-    const cachedItems = await Promise.all(
-      rawItems.map(async (item: any) => ({
-        raw: item,
-        cached: await getCachedMeta(item.id),
-      }))
+    // 3. Check Supabase cache and enrich with TMDB high-res visuals (replacing metahub screenshots)
+    const enrichedItems = await Promise.all(
+      rawItems.map(async (item: any) => {
+        const cached = await getCachedMeta(item.id);
+
+        let poster = cached?.poster || item.poster;
+        let background = cached?.background || item.background;
+        let name = cached?.title || item.name;
+        let description = cached?.overview || item.description;
+
+        // Upgrade poster and background from TMDB if missing or using metahub placeholder
+        if (
+          !poster ||
+          !background ||
+          poster.includes("metahub.space") ||
+          background.includes("metahub.space")
+        ) {
+          try {
+            const tmdb = await fetchTMDBMeta(type, item.id);
+            if (tmdb?.posterPath) poster = tmdb.posterPath;
+            if (tmdb?.backdropPath) background = tmdb.backdropPath;
+            if (tmdb?.title && (!name || !cached?.title)) name = tmdb.title;
+            if (tmdb?.overview && !cached?.overview) description = tmdb.overview;
+          } catch (err) {
+            console.warn(`[Catalog] TMDB visual enrich note for ${item.id}:`, err);
+          }
+        }
+
+        return {
+          raw: item,
+          cached,
+          poster,
+          background,
+          name,
+          description,
+        };
+      })
     );
 
-    // 2. For items not in Supabase with descriptions, batch translate them
-    const unCachedDescriptions = cachedItems
-      .filter((ci) => !ci.cached && ci.raw.description)
-      .map((ci) => ci.raw.description);
+    // 4. For items without Turkish descriptions, batch translate them
+    const unCachedDescriptions = enrichedItems
+      .filter((ci) => !ci.cached && ci.description)
+      .map((ci) => ci.description);
 
     let translatedDescriptions: string[] = [];
     if (unCachedDescriptions.length > 0) {
@@ -78,39 +120,28 @@ export async function getTranslatedCatalog(
     }
 
     let descIdx = 0;
-    const finalMetas: CatalogItem[] = cachedItems.map(({ raw, cached }) => {
-      if (cached) {
+    const finalMetas: CatalogItem[] = enrichedItems.map(
+      ({ raw, cached, poster, background, name, description }) => {
+        let finalDesc = description;
+        if (!cached && description && translatedDescriptions[descIdx]) {
+          finalDesc = translatedDescriptions[descIdx++];
+        }
+
+        const genres = cached?.genres || translateGenres(raw.genres);
+
         return {
-          id: cached.id,
-          type: cached.type,
-          name: cached.original_title || cached.title,
-          poster: cached.poster || raw.poster,
-          background: cached.background || raw.background,
-          description: cached.overview || raw.description,
-          genres: cached.genres || translateGenres(raw.genres),
-          imdbRating: cached.imdb_rating || raw.imdbRating,
-          releaseInfo: cached.release_info || raw.releaseInfo,
+          id: raw.id,
+          type: raw.type,
+          name: name || raw.name,
+          poster,
+          background,
+          description: finalDesc,
+          genres,
+          imdbRating: cached?.imdb_rating || raw.imdbRating,
+          releaseInfo: cached?.release_info || raw.releaseInfo || raw.year,
         };
       }
-
-      const trGenres = translateGenres(raw.genres);
-      let trDesc = raw.description;
-      if (raw.description && translatedDescriptions[descIdx]) {
-        trDesc = translatedDescriptions[descIdx++];
-      }
-
-      return {
-        id: raw.id,
-        type: raw.type,
-        name: raw.name,
-        poster: raw.poster,
-        background: raw.background,
-        description: trDesc,
-        genres: trGenres,
-        imdbRating: raw.imdbRating,
-        releaseInfo: raw.releaseInfo || raw.year,
-      };
-    });
+    );
 
     return { metas: finalMetas };
   } catch (err) {
