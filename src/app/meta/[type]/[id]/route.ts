@@ -21,6 +21,8 @@ export async function GET(
   }
 
   const cleanId = id.replace(/\.json$/, "").trim();
+  const userAgent = request.headers.get("user-agent") || "unknown";
+  console.log(`[Turkify] Meta requested: ${type}/${cleanId} by User-Agent: ${userAgent}`);
 
   try {
     const result = await getTranslatedMetadata(type as "movie" | "series", cleanId);

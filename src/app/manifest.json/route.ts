@@ -6,6 +6,8 @@ export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   const origin = request.nextUrl.origin;
+  const userAgent = request.headers.get("user-agent") || "unknown";
+  console.log(`[Turkify] Manifest requested by User-Agent: ${userAgent}`);
   const manifest = getManifest(origin);
 
   return NextResponse.json(manifest, {
