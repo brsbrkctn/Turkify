@@ -1,0 +1,35 @@
+# Turkify — Stremio & Nuvio Türkçe Meta Eklentisi
+
+> Açık kaynaklı, yüksek hızlı, akıllı önbellekli ve TMDB destekli Stremio / Nuvio Türkçe meta eklentisi.
+> Geliştirici: Barış Berke Çetin (https://github.com/brsbrkctn)
+> Proje Deposu: https://github.com/brsbrkctn/Turkify
+> Canlı Adres: https://turkify-addon.vercel.app
+
+## Genel Bakış (Overview)
+Turkify, popüler medya akış uygulamaları olan Stremio ve Nuvio kullanıcıları için film, dizi, sezon ve tekil bölüm açıklamalarını otomatik olarak Türkçe'ye çevirip sunan yüksek performanslı bir meta eklentisidir (Stremio Addon).
+
+## Temel Özellikler (Core Features)
+- **Otomatik Türkçe Çeviri**: Yabancı film ve dizilerin ana synopsilerini, türlerini ve tüm sezonluk tekil bölüm konularını Türkçe sunar.
+- **TMDB Entegrasyonu & 4K Görseller**: Cinemeta'nın düşük çözünürlüklü ve sınırlı verileri yerine TMDB'nin (The Movie Database) resmi 4K afişleri, sinematik arka planları ve fotoğraflı oyuncu kadrosunu sağlar.
+- **Hassas Arama (Precision Search)**: TMDB Search API altyapısıyla harfiyen doğru içerik eşleşmesi ve orijinal IMDb `tt...` ID çözümlemesi yapar.
+- **Torrentio & Stream Eklentisi Uyumu**: Orijinal IMDb kimliklerini (ID) ve isteğe bağlı orijinal İngilizce başlıkları korur. Bu sayede Torrentio, MediaFusion ve Debrid gibi kaynak eklentileriyle akış eşleşmesi %100 kusursuz çalışır.
+- **Sıfır Bekleme & Akıllı Bulut Bellek**: Daha önce işlenmiş içeriklerde anlık (<30ms) yanıt süresi sağlar.
+
+## Kurulum ve Yapılandırma (Installation)
+- **Manifest URL**: `https://turkify-addon.vercel.app/manifest.json`
+- **Stremio Kurulumu**: Web sitesindeki "Stremio'ya Otomatik Ekle" butonuna tıklayarak doğrudan Stremio'ya eklenebilir (`stremio://turkify-addon.vercel.app/manifest.json`).
+- **Nuvio Kurulumu**: Nuvio uygulamasında Ayarlar > İçerik ve Keşif > Eklentiler sekmesine gidip Manifest URL'i yapıştırılarak eklenir.
+- **Kritik Sıralama İpucu**: Stremio ve Nuvio'da içeriklerin Türkçe görünmesi için Turkify eklentisinin eklenti listesinde Cinemeta'nın üstünde (en başta) yer alması önerilir.
+
+## Özelleştirme Seçenekleri (Configuration Options)
+Kullanıcılar `https://turkify-addon.vercel.app/configure` adresi üzerinden aşağıdaki tercihleri yapılandırabilir:
+1. `keepOriginalTitle`: Film ve dizi isimlerini orijinal İngilizce tutarak torrent eşleşmesini maksimuma çıkarır (Önerilen).
+2. `translateEpisodes`: Dizi bölümlerinin tekil konu özetlerini Türkçe sunar (Önerilen).
+3. `enrichTmdbMedia`: TMDB'den yüksek çözünürlüklü 4K posterler, arka planlar ve fotoğraflı oyuncu kadrosunu dahil eder (Önerilen).
+4. `enableCatalogs`: Ana sayfaya Türkçe açıklamalı Popüler Filmler ve Popüler Diziler keşif vitrinlerini ekler (Önerilen).
+
+## Teknik Mimari (Architecture)
+- **Framework**: Next.js 14 App Router (Node.js & Edge Serverless)
+- **Afiş ve Veri Kaynağı**: TMDB API v3 & Stremio Cinemeta v3
+- **Veritabanı / Önbellek**: PostgreSQL Cloud Cache
+- **Lisans**: MIT License

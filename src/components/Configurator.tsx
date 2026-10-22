@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Copy, Check, ExternalLink, Settings2, HelpCircle } from "lucide-react";
+import { Copy, Check, ExternalLink, Settings2, HelpCircle, AlertTriangle } from "lucide-react";
 import { encodeConfig } from "@/lib/config-helper";
 
 export function Configurator() {
@@ -217,6 +217,19 @@ export function Configurator() {
                 />
               </button>
             </div>
+          </div>
+        </div>
+
+        {/* Important Addon Ordering / Priority Notice */}
+        <div className="mb-6 p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-200/90 text-xs sm:text-sm leading-relaxed flex items-start gap-3 shadow-lg shadow-amber-950/20">
+          <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <span className="font-bold text-amber-300 block text-xs sm:text-sm">
+              Önemli İpucu: Eklenti Sıralaması ve Öncelik
+            </span>
+            <p className="text-amber-200/80 text-xs leading-relaxed">
+              Stremio ve Nuvio'da film ve dizi detaylarının eksiksiz Türkçe görüntülenebilmesi için, uygulamanızın <strong>Eklentiler (Addons)</strong> listesinde <strong>Turkify</strong> eklentisini <strong>Cinemeta'nın üstüne (en başa)</strong> taşımanız veya önceliğini en yukarı almanız önerilir. Sıralamada altta kalması durumunda uygulamalar verileri varsayılan İngilizce Cinemeta kaynağından çekebilir.
+            </p>
           </div>
         </div>
 

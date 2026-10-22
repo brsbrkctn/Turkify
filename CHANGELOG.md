@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.3] - 2026-10-22
+
+### Added & Improved
+- **Addon Priority & Hierarchy Notice**:
+  - Embedded an amber alert card in the configurator advising users to move Turkify to the top of their addon list in Stremio and Nuvio, preventing Cinemeta from overriding Turkish metadata.
+- **Comprehensive SEO, GEO & AI Engine Indexing**:
+  - `src/app/robots.ts`: Added dynamic Next.js robots configuration allowing search engines (Googlebot, Bingbot) and major AI crawlers (GPTBot, ClaudeBot, PerplexityBot, Applebot).
+  - `src/app/sitemap.ts`: Dynamic sitemap indexing `/`, `/configure`, and `/manifest.json`.
+  - `public/llms.txt`: Structured Markdown specification for LLM discoverability, documenting features, installation URLs, and attribution to Barış Berke Çetin.
+  - `src/app/layout.tsx`: Embedded rich JSON-LD Schema.org graphs for `SoftwareApplication`, `FAQPage`, and `WebSite` rich snippets.
+
+---
+
 ## [1.1.2] - 2026-10-22
 
 ### Added & Improved
