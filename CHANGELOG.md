@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.2] - 2026-10-22
+
+### Added & Improved
+- **Motion & Micro-Interaction Polish**:
+  - Implemented GPU-accelerated micro-animations adhering to Emil Kowalski's motion philosophy (`transform` and `opacity` only).
+  - Ambient breathing background glows with dual-cycle organic pulsing (`9s` and `11s`).
+  - Staggered entrance animations on page load (`animate-fade-up` with progressive delays).
+  - Tactile Apple-style spring physics on toggle switches (`cubic-bezier(0.34, 1.56, 0.64, 1)`).
+  - Micro-scale active feedback on cards, copy button with icon pop animation, and sweeping light beam reflection on primary CTA.
+  - Smooth 200ms crossfade on Live Preview language switching with zero layout shift.
+  - Comprehensive `@media (prefers-reduced-motion: reduce)` accessibility support.
+
+---
+
 ## [1.1.1] - 2026-10-22
 
 ### Added & Improved

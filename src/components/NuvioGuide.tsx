@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { MonitorPlay, Smartphone, ArrowRight, CheckCircle2 } from "lucide-react";
+import { MonitorPlay, Smartphone, CheckCircle2 } from "lucide-react";
 
 export function NuvioGuide() {
   return (
@@ -15,10 +15,10 @@ export function NuvioGuide() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Nuvio Instructions */}
-        <div className="rounded-2xl bg-slate-900/60 border border-slate-800 p-6 flex flex-col justify-between backdrop-blur-sm hover:border-slate-700 transition-colors">
+        <div className="rounded-2xl bg-slate-900/60 border border-slate-800 p-6 flex flex-col justify-between backdrop-blur-sm hover:border-sky-500/40 hover:bg-slate-900/80 transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] hover:-translate-y-1 shadow-sm hover:shadow-xl hover:shadow-sky-950/20 group">
           <div>
             <div className="flex items-center gap-3 mb-5">
-              <div className="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400">
+              <div className="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 group-hover:scale-110 transition-transform duration-200">
                 <Smartphone className="w-5 h-5" />
               </div>
               <div>
@@ -62,10 +62,10 @@ export function NuvioGuide() {
         </div>
 
         {/* Stremio Instructions */}
-        <div className="rounded-2xl bg-slate-900/60 border border-slate-800 p-6 flex flex-col justify-between backdrop-blur-sm hover:border-slate-700 transition-colors">
+        <div className="rounded-2xl bg-slate-900/60 border border-slate-800 p-6 flex flex-col justify-between backdrop-blur-sm hover:border-orange-500/40 hover:bg-slate-900/80 transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] hover:-translate-y-1 shadow-sm hover:shadow-xl hover:shadow-orange-950/20 group">
           <div>
             <div className="flex items-center gap-3 mb-5">
-              <div className="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-400">
+              <div className="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-400 group-hover:scale-110 transition-transform duration-200">
                 <MonitorPlay className="w-5 h-5" />
               </div>
               <div>
@@ -104,7 +104,7 @@ export function NuvioGuide() {
 
           <div className="mt-6 pt-4 border-t border-slate-800 text-xs text-slate-400 flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-            <span>Hesabınıza bir kez kurduğunuzda TV dahil tüm cihazlarınıza eşitlenir.</span>
+            <span>Tüm Stremio platformlarıyla (Web, Masaüstü, TV) senkronize çalışır.</span>
           </div>
         </div>
       </div>

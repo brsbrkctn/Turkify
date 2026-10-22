@@ -14,11 +14,11 @@ export function LivePreview() {
           Turkify eklentisi yüklendiğinde Stremio veya Nuvio'da göreceğiniz fark:
         </p>
 
-        {/* Toggle button */}
+        {/* Toggle button with tactile press feedback */}
         <div className="inline-flex p-1 rounded-xl bg-slate-900 border border-slate-800 mt-5 shadow-inner">
           <button
             onClick={() => setIsTurkish(false)}
-            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
+            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-200 active:scale-95 ${
               !isTurkish
                 ? "bg-slate-800 text-white shadow-sm"
                 : "text-slate-400 hover:text-slate-200"
@@ -28,7 +28,7 @@ export function LivePreview() {
           </button>
           <button
             onClick={() => setIsTurkish(true)}
-            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
+            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-200 active:scale-95 ${
               isTurkish
                 ? "bg-gradient-to-r from-sky-500 to-cyan-500 text-white shadow-md shadow-sky-950"
                 : "text-slate-400 hover:text-slate-200"
@@ -40,10 +40,10 @@ export function LivePreview() {
       </div>
 
       {/* Mock Stremio / Nuvio Card with Zero-Layout-Shift Fixed Dimensions */}
-      <div className="relative rounded-2xl bg-gradient-to-br from-slate-900/90 via-slate-950 to-black border border-slate-800 overflow-hidden shadow-2xl backdrop-blur-xl">
+      <div className="relative rounded-2xl bg-gradient-to-br from-slate-900/90 via-slate-950 to-black border border-slate-800 overflow-hidden shadow-2xl backdrop-blur-xl group">
         {/* Background authentic Breaking Bad backdrop artwork */}
         <div
-          className="absolute inset-0 bg-cover bg-center opacity-20 filter blur-sm pointer-events-none scale-105 transition-all duration-700"
+          className="absolute inset-0 bg-cover bg-center opacity-20 filter blur-sm pointer-events-none scale-105 transition-all duration-700 group-hover:opacity-25"
           style={{
             backgroundImage:
               "url('https://image.tmdb.org/t/p/original/tsRy63Mu5cu8etL1X7ZLyf7UP1M.jpg')",
@@ -52,15 +52,18 @@ export function LivePreview() {
 
         <div className="relative p-6 sm:p-8 flex flex-col md:flex-row gap-6 items-center md:items-start">
           {/* Breaking Bad Official Poster */}
-          <div className="w-40 sm:w-44 shrink-0 rounded-xl overflow-hidden shadow-2xl border border-slate-700/80 bg-slate-900 aspect-[2/3] relative mx-auto md:mx-0">
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent z-10" />
+          <div className="w-40 sm:w-44 shrink-0 rounded-xl overflow-hidden shadow-2xl border border-slate-700/80 bg-slate-900 aspect-[2/3] relative mx-auto md:mx-0 group/poster">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent z-10 pointer-events-none" />
             <img
               src="https://image.tmdb.org/t/p/w500/ztkUQFLlC19CCMYHW9o1zWhJRNq.jpg"
               alt="Breaking Bad Poster"
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover transition-transform duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover/poster:scale-105"
             />
             {/* Fixed-width badge so width never shifts */}
-            <span className="absolute bottom-2 left-2 z-20 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-sky-600 text-white shadow w-14 text-center flex items-center justify-center">
+            <span
+              key={isTurkish ? "badge-tr" : "badge-en"}
+              className="absolute bottom-2 left-2 z-20 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-sky-600 text-white shadow w-14 text-center flex items-center justify-center animate-micro-fade"
+            >
               {isTurkish ? "DİZİ" : "SERIES"}
             </span>
           </div>
@@ -75,7 +78,10 @@ export function LivePreview() {
               <span className="flex items-center gap-1 font-semibold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20">
                 <Star className="w-3 h-3 fill-amber-400" /> 9.5
               </span>
-              <span className="text-slate-300 font-medium inline-block min-w-[130px]">
+              <span
+                key={isTurkish ? "meta-tr" : "meta-en"}
+                className="text-slate-300 font-medium inline-block min-w-[130px] animate-micro-fade"
+              >
                 {isTurkish ? "5 Sezon • 62 Bölüm" : "5 Seasons • 62 Episodes"}
               </span>
             </div>
@@ -85,7 +91,10 @@ export function LivePreview() {
               <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
                 Breaking Bad
               </h2>
-              <div className="flex flex-wrap justify-center md:justify-start gap-1.5 mt-2">
+              <div
+                key={isTurkish ? "genres-tr" : "genres-en"}
+                className="flex flex-wrap justify-center md:justify-start gap-1.5 mt-2 animate-micro-fade"
+              >
                 {(isTurkish
                   ? ["Suç", "Dram", "Gerilim"]
                   : ["Crime", "Drama", "Thriller"]
@@ -100,32 +109,41 @@ export function LivePreview() {
               </div>
             </div>
 
-            {/* Synopsis / Description with stable min-height to prevent vertical layout jump */}
-            <div className="rounded-xl p-4 bg-black/50 border border-slate-800/80 text-left">
+            {/* Synopsis / Description with stable min-height & micro-fade on language switch */}
+            <div className="rounded-xl p-4 bg-black/50 border border-slate-800/80 text-left transition-colors duration-300 hover:border-slate-700">
               <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5 flex items-center gap-1.5">
                 <Clapperboard className="w-3.5 h-3.5 text-sky-400" />
                 {isTurkish ? "Dizi Konusu" : "Overview"}
               </h4>
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed min-h-[76px] sm:min-h-[58px] flex items-start">
+              <p
+                key={isTurkish ? "syn-tr" : "syn-en"}
+                className="text-xs sm:text-sm text-slate-300 leading-relaxed min-h-[76px] sm:min-h-[58px] flex items-start animate-micro-fade"
+              >
                 {isTurkish
                   ? "Lise kimya öğretmeni Walter White'a ölümcül bir akciğer kanseri teşhisi konur. Ailesinin finansal geleceğini güvence altına almak için eski öğrencisi Jesse Pinkman ile birlikte metamfetamin üretip satmaya karar verir."
                   : "A high school chemistry teacher diagnosed with inoperable lung cancer turns to manufacturing and selling methamphetamine in order to secure his family's future."}
               </p>
             </div>
 
-            {/* Episode Preview with stable min-height */}
-            <div className="rounded-xl p-4 bg-slate-900/60 border border-slate-800 text-left">
+            {/* Episode Preview with stable min-height & micro-fade */}
+            <div className="rounded-xl p-4 bg-slate-900/60 border border-slate-800 text-left transition-colors duration-300 hover:border-slate-700">
               <div className="flex items-center justify-between text-xs font-semibold text-slate-300 mb-2">
                 <span className="flex items-center gap-1.5">
                   <Tv className="w-3.5 h-3.5 text-orange-400" />
                   {isTurkish ? "1. Sezon 1. Bölüm (Pilot)" : "Season 1, Episode 1 (Pilot)"}
                 </span>
-                <span className="text-sky-400 text-[11px] flex items-center gap-1 font-medium">
+                <span
+                  key={isTurkish ? "badge-desc-tr" : "badge-desc-en"}
+                  className="text-sky-400 text-[11px] flex items-center gap-1 font-medium animate-micro-fade"
+                >
                   <CheckCircle2 className="w-3.5 h-3.5" />
                   {isTurkish ? "Türkçe Açıklama" : "Original Metadata"}
                 </span>
               </div>
-              <p className="text-xs text-slate-400 leading-relaxed italic min-h-[38px] flex items-start">
+              <p
+                key={isTurkish ? "ep-tr" : "ep-en"}
+                className="text-xs text-slate-400 leading-relaxed italic min-h-[38px] flex items-start animate-micro-fade"
+              >
                 {isTurkish
                   ? "Walter, 50. yaş gününde ölümcül kanser olduğunu öğrenir ve ilk uyuşturucu laboratuvarını eski bir karavanda kurar."
                   : "Walter discovers he has stage-3 lung cancer and decides to partner with Jesse to cook meth in a used RV."}
