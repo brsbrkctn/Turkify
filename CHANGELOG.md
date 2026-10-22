@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.4] - 2026-10-22
+
+### Fixed
+- **Actor Photos & Full Cast Preservation**:
+  - Preserved rich metadata properties (`moviedb_id`, `tvdb_id`, `trailers`, `trailerStreams`, `links`, `behaviorHints`, `status`, `country`) across cached reads. Nuvio now receives the TMDB movie/series ID (`moviedb_id`) and displays real actor headshots, photos, and full cast credits instead of generic letter badges.
+- **Client Disk Cache Elimination**:
+  - Set `Cache-Control: no-cache, no-store, must-revalidate` on all `/meta/...` endpoints. Android TV and Nuvio clients will always fetch fresh, complete Turkish metadata rather than caching partially translated responses on local disk.
+
+### Added
+- **Bilingual Documentation & Architecture Flow**:
+  - Updated `README.md` with full Turkish documentation, features, installation guide, and Mermaid architectural workflow diagram.
+  - Updated GitHub repository description to Turkish.
+
+---
+
 ## [1.0.3] - 2026-10-22
 
 ### Changed

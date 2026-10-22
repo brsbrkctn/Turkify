@@ -5,7 +5,7 @@ export function getManifest(baseUrl?: string): StremioManifest {
 
   return {
     id: "org.brsbrkctn.turkify",
-    version: "1.0.3",
+    version: "1.0.4",
     name: "Turkify (Türkçe)",
     description:
       "Stremio ve Nuvio için film, dizi ve bölüm açıklamalarını otomatik Türkçe'ye çevirip sunan yüksek hızlı meta eklentisi.",

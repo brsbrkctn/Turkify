@@ -20,7 +20,9 @@ function isLikelyEnglish(text?: string): boolean {
 
 /**
  * Core metadata orchestration function.
- * Checks cache -> fetches Cinemeta & TMDB -> auto-translates -> caches & returns.
+ * 1. Fetches base metadata from Cinemeta (ensures moviedb_id for actor photos, trailers, links).
+ * 2. Checks Supabase cache for Turkish translations.
+ * 3. On cache miss: translates overview, genres, episodes -> saves to Supabase -> returns merged meta.
  */
 export async function getTranslatedMetadata(
   type: "movie" | "series",
@@ -34,14 +36,21 @@ export async function getTranslatedMetadata(
     return { meta: null };
   }
 
-  // 1. Check Supabase cache
+  // 1. Fetch base metadata from Cinemeta
+  // This provides full rich fields: moviedb_id (for Nuvio actor photos), tvdb_id, trailers, links, cast, videos
+  const baseMeta = await fetchCinemetaMeta(type, cleanId);
+  if (!baseMeta) {
+    return { meta: null };
+  }
+
+  // 2. Check Supabase cache for existing translations
   try {
     const cached = await getCachedMeta(cleanId);
     if (cached) {
       let cachedVideos = cached.videos;
       let needsCacheUpdate = false;
 
-      // Check if cached series has any English episodes that were partially translated
+      // Check if any episode in cachedVideos is still English
       if (
         type === "series" &&
         cachedVideos &&
@@ -85,32 +94,45 @@ export async function getTranslatedMetadata(
           updated_at: new Date().toISOString(),
         };
         saveCachedMeta(updatedRecord).catch((err) =>
-          console.warn(`[MetaProcessor] Background cache update failed for ${cleanId}:`, err)
+          console.warn(`[MetaProcessor] Cache update failed for ${cleanId}:`, err)
         );
       }
 
+      // Merge baseMeta with cached translations so no rich fields (moviedb_id, trailers, actor photos) are stripped!
       const displayName =
         config.turkishTitle && cached.title
           ? cached.title
-          : cached.original_title || cached.title;
+          : cached.original_title || baseMeta.name;
+
+      // Merge videos: use baseMeta video structure (with thumbnails & tvdb_id) enriched with cached translations
+      let mergedVideos: MetaVideo[] | undefined = baseMeta.videos;
+      if (baseMeta.videos && cachedVideos) {
+        mergedVideos = baseMeta.videos.map((bv) => {
+          const cv = cachedVideos?.find(
+            (cv) =>
+              cv.id === bv.id ||
+              (cv.season === bv.season &&
+                (cv.number === bv.number || cv.episode === bv.episode))
+          );
+          if (cv && cv.overview) {
+            return {
+              ...bv,
+              overview: cv.overview,
+              description: cv.description || cv.overview,
+            };
+          }
+          return bv;
+        });
+      }
 
       return {
         meta: {
-          id: cached.id,
-          type: cached.type as "movie" | "series",
+          ...baseMeta,
           name: displayName,
-          originalName: cached.original_title,
-          description: cached.overview,
-          genres: cached.genres,
-          videos: cachedVideos,
-          poster: cached.poster,
-          background: cached.background,
-          logo: cached.logo,
-          imdbRating: cached.imdb_rating,
-          releaseInfo: cached.release_info,
-          runtime: cached.runtime,
-          director: cached.director,
-          cast: cached.cast,
+          originalName: baseMeta.name,
+          description: cached.overview || baseMeta.description,
+          genres: cached.genres || translateGenres(baseMeta.genres),
+          videos: mergedVideos,
         },
       };
     }
@@ -118,13 +140,7 @@ export async function getTranslatedMetadata(
     console.warn(`[MetaProcessor] Cache lookup error for ${cleanId}:`, err);
   }
 
-  // 2. Fetch base data from Cinemeta
-  const baseMeta = await fetchCinemetaMeta(type, cleanId);
-  if (!baseMeta) {
-    return { meta: null };
-  }
-
-  // 3. Check TMDB for native Turkish metadata
+  // 3. Cold Cache Miss: Check TMDB for native Turkish metadata
   let turkishTitle = baseMeta.name;
   let turkishOverview: string | null = null;
   let source = "cinemeta";
@@ -194,7 +210,7 @@ export async function getTranslatedMetadata(
     }
   }
 
-  // 7. Assemble final metadata
+  // 7. Assemble final metadata & cache
   const finalOverview = turkishOverview || baseMeta.description || "";
   const originalTitle = baseMeta.name;
 

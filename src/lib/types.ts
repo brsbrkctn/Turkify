@@ -32,6 +32,14 @@ export interface MetaDetail {
   cast?: string[];
   videos?: MetaVideo[];
   trailers?: Array<{ source: string; type: string }>;
+  trailerStreams?: any[];
+  links?: any[];
+  moviedb_id?: number;
+  tvdb_id?: number;
+  status?: string;
+  country?: string;
+  slug?: string;
+  popularities?: Record<string, number>;
   behaviorHints?: {
     defaultVideoId?: string;
     hasScheduledVideos?: boolean;
