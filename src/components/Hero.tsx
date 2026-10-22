@@ -24,7 +24,7 @@ export function Hero({ onScrollToConfig, onScrollToGuide }: HeroProps) {
 
         {/* Main Headline - Line break on 'Artık Türkçe.' */}
         <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-white leading-[1.18] mb-6 animate-fade-up delay-100">
-          Dizi ve Filmlerin Konuları
+          Dizi ve Filmlerin İçerikleri
           <br />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-cyan-300 to-orange-400">
             Artık Türkçe.
@@ -54,7 +54,7 @@ export function Hero({ onScrollToConfig, onScrollToGuide }: HeroProps) {
             className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-200 hover:text-white font-medium text-sm sm:text-base border border-slate-800 hover:border-slate-700 flex items-center justify-center gap-2 transition-all shadow-sm transform hover:-translate-y-0.5 active:scale-[0.98]"
           >
             <Layers className="w-5 h-5 text-slate-400" />
-            <span>Nuvio Kurulum Rehberi</span>
+            <span>Kurulum Rehberi</span>
           </button>
         </div>
 

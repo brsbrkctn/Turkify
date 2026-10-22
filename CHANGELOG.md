@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.4] - 2026-10-22
+
+### Changed
+- **Hero Typography & Headline Refinement**:
+  - Updated primary landing headline from *"Dizi ve Filmlerin Konuları Artık Türkçe"* to *"Dizi ve Filmlerin İçerikleri Artık Türkçe"*, more accurately reflecting comprehensive Turkish metadata coverage including synopsis, seasons, episode titles, and cast details.
+- **Action Button Label Simplification**:
+  - Simplified hero secondary button from *"Nuvio Kurulum Rehberi"* to *"Kurulum Rehberi"* to generically and elegantly encompass both Stremio and Nuvio platform walkthroughs.
+- **Version & Schema Synchronization**:
+  - Synchronized `v1.1.4` across `package.json`, `manifest.ts`, `Header.tsx`, and `layout.tsx` Schema.org `SoftwareApplication` graphs.
+
+---
+
 ## [1.1.3] - 2026-10-22
 
 ### Added & Improved

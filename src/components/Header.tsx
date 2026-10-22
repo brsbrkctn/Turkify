@@ -21,7 +21,7 @@ export function Header() {
                 Turkify
               </span>
               <span className="text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20">
-                v1.1.3
+                v1.1.4
               </span>
             </div>
             <p className="text-xs text-slate-400 hidden sm:block">
