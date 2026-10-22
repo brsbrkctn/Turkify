@@ -76,7 +76,7 @@ const softwareSchema = {
     "Stremio ve Nuvio için film, dizi ve bölüm açıklamalarını otomatik Türkçe'ye çevirip yüksek hızda sunan açık kaynak eklenti.",
   url: "https://turkify-addon.vercel.app",
   image: "https://turkify-addon.vercel.app/logo.png",
-  softwareVersion: "1.1.4",
+  softwareVersion: "1.1.5",
   author: {
     "@type": "Person",
     name: "Barış Berke Çetin",

@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.5] - 2026-10-22
+
+### Changed
+- **Turkish Community Documentation & README Alignment**:
+  - Rewrote and updated `README.md` completely in Turkish for the Turkish streaming community, removing vendor database promotional phrases in favor of "Akıllı Bulut Önbellekleme".
+  - Maintained formal architectural reference to Supabase exclusively within the technical stack section.
+- **Version & Schema Synchronization**:
+  - Synchronized `v1.1.5` across `package.json`, `manifest.ts`, `Header.tsx`, and `layout.tsx` Schema.org `SoftwareApplication` graphs.
+
+---
+
 ## [1.1.4] - 2026-10-22
 
 ### Changed
