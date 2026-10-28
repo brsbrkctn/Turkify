@@ -7,6 +7,7 @@ import { translateGenres } from "../src/lib/genres.js";
 import { translateText, batchTranslate, translateWithMyMemory, splitIntoChunks } from "../src/lib/translator.js";
 import { fetchCinemetaMeta } from "../src/lib/cinemeta.js";
 import { getTranslatedMetadata } from "../src/lib/meta-processor.js";
+import { pingSupabase } from "../src/lib/supabase.js";
 
 async function runTests() {
   console.log("=== TURKIFY TEST SUITE ===");
@@ -109,6 +110,17 @@ async function runTests() {
     console.warn("MyMemory network note:", err.message);
     // MyMemory might be network/rate limited, still counted as handled
     assert(true, "MyMemory fallback handled gracefully");
+  }
+
+  // Test 8: Supabase Anti-Sleep Ping
+  try {
+    const pingRes = await pingSupabase();
+    assert(
+      typeof pingRes.ok === "boolean" && typeof pingRes.latencyMs === "number",
+      `Supabase ping function executed cleanly (ok=${pingRes.ok}, latency=${pingRes.latencyMs}ms)`
+    );
+  } catch (err) {
+    assert(false, `Supabase ping test crashed: ${err.message}`);
   }
 
   console.log(`\n=== RESULTS: ${passed} PASSED, ${failed} FAILED ===`);

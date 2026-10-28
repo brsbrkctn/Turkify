@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.7] - 2026-10-28
+
+### Added & Improved
+- **Unified Keep-Alive & Anti-Sleep Endpoint (`/api/keep-alive` & `/api/health`)**:
+  - Introduced unified keep-alive route handlers that simultaneously eliminate Vercel serverless cold starts and prevent Supabase's automatic 7-day inactivity project pause.
+  - Implemented `pingSupabase()` executing a micro-query (`SELECT id FROM translated_meta LIMIT 1`) on each ping, resetting Supabase's activity timer without adding overhead.
+  - Added latency and database status metrics in the keep-alive JSON response.
+- **Version & Schema Synchronization**:
+  - Synchronized `v1.1.7` across `package.json`, `manifest.ts`, `Header.tsx`, and `layout.tsx` Schema.org `SoftwareApplication` graphs.
+
+---
+
 ## [1.1.6] - 2026-10-22
 
 ### Fixed & Improved

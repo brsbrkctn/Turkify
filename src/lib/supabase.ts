@@ -98,3 +98,30 @@ export async function saveCachedMeta(meta: CachedMetadata): Promise<void> {
     console.warn(`[Supabase] Cache save exception for ${cleanId}:`, err);
   }
 }
+
+/**
+ * Executes a lightweight query against Supabase to keep the project active
+ * and prevent Supabase's 7-day automatic inactivity pause.
+ */
+export async function pingSupabase(): Promise<{ ok: boolean; latencyMs: number; error?: string }> {
+  const client = getSupabase();
+  if (!client) {
+    return { ok: false, latencyMs: 0, error: "Supabase client not configured" };
+  }
+
+  const start = Date.now();
+  try {
+    const { error } = await client
+      .from("translated_meta")
+      .select("id")
+      .limit(1);
+
+    const latencyMs = Date.now() - start;
+    if (error) {
+      return { ok: false, latencyMs, error: error.message };
+    }
+    return { ok: true, latencyMs };
+  } catch (err: any) {
+    return { ok: false, latencyMs: Date.now() - start, error: err?.message || "Connection failed" };
+  }
+}

@@ -42,7 +42,7 @@ export function getManifest(baseUrl?: string, config?: AddonConfig): StremioMani
 
   return {
     id: "org.brsbrkctn.turkify",
-    version: "1.1.6",
+    version: "1.1.7",
     name: "Turkify (Türkçe)",
     description:
       "Stremio ve Nuvio için film, dizi ve bölüm açıklamalarını otomatik Türkçe'ye çevirip sunan yüksek hızlı meta eklentisi.",
