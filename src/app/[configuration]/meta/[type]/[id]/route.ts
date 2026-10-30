@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getTranslatedMetadata } from "@/lib/meta-processor";
 import { parseConfig } from "@/lib/config-helper";
+import { recordDailyVisit } from "@/lib/analytics";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -23,6 +24,9 @@ export async function GET(
 
   const cleanId = id.replace(/\.json$/, "").trim();
   const config = parseConfig(configuration);
+
+  // Non-blocking KVKK-compliant anonymous daily visitor analytics
+  recordDailyVisit(request);
 
   try {
     const result = await getTranslatedMetadata(

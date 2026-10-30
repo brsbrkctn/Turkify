@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.8] - 2026-10-30
+
+### Added & Improved
+- **KVKK & GDPR Compliant Anonymous Visitor Analytics**:
+  - Implemented privacy-first anonymous daily analytics engine (`src/lib/analytics.ts`) using rotating salted SHA-256 hashes (`SHA-256(IP + Date + Salt)`). Raw IP addresses are never saved or persisted in the database.
+  - Automatically classifies clients by platform (`Nuvio`, `Stremio`, `Web`, `Other`) and geographic location (`Country`, `City` via Vercel Edge headers).
+  - Built-in 30-second in-memory debounce mechanism to prevent database congestion during rapid episode or catalog browsing.
+  - Excluded known bots, crawlers, and monitoring probes (`cron-job.org`, `uptimerobot`, health checks) from analytics tracking.
+  - Fully asynchronous and non-blocking background execution ensuring 0ms latency impact on Stremio/Nuvio metadata streaming.
+- **Supabase Stored Procedures & Retention Maintenance**:
+  - Added atomic PostgreSQL RPC `record_daily_visit` with UPSERT logic and automated 30-day data retention cleanup.
+  - Added reporting RPC `get_turkify_stats` for real-time aggregated metrics.
+- **CLI Analytics Tooling (`scripts/get-stats.mjs`)**:
+  - Created interactive CLI script to instantly view daily unique visitors, total translation requests, platform breakdowns, and 7-day trends from the terminal.
+- **Version & Schema Synchronization**:
+  - Synchronized `v1.1.8` across `package.json`, `manifest.ts`, `Header.tsx`, and `layout.tsx` Schema.org `SoftwareApplication` graphs.
+
+---
+
 ## [1.1.7] - 2026-10-28
 
 ### Added & Improved

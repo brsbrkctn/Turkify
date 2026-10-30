@@ -4,7 +4,7 @@ import { CachedMetadata } from "./types";
 let supabaseClient: SupabaseClient | null = null;
 const memoryCache = new Map<string, { data: CachedMetadata; expiresAt: number }>();
 
-function getSupabase(): SupabaseClient | null {
+export function getSupabase(): SupabaseClient | null {
   if (supabaseClient) return supabaseClient;
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;

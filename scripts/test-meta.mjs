@@ -2,12 +2,21 @@
  * Automated test script for Turkify translation and Stremio Addon Protocol.
  */
 
+if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+  process.env.NEXT_PUBLIC_SUPABASE_URL = "https://akfnjozqjewiaxfcvgsf.supabase.co";
+}
+if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY && !process.env.SUPABASE_ANON_KEY) {
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFrZm5qb3pxamV3aWF4ZmN2Z3NmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI2MTg2NDUsImV4cCI6MjEwODE5NDY0NX0.DWUPBanll_IGRvBCfD_DJ_8uJCsFw9MeStK_Z-rYy8A";
+}
+
 import { getManifest } from "../src/lib/manifest.js";
 import { translateGenres } from "../src/lib/genres.js";
 import { translateText, batchTranslate, translateWithMyMemory, splitIntoChunks } from "../src/lib/translator.js";
 import { fetchCinemetaMeta } from "../src/lib/cinemeta.js";
 import { getTranslatedMetadata } from "../src/lib/meta-processor.js";
 import { pingSupabase } from "../src/lib/supabase.js";
+import { getTurkifyStats } from "../src/lib/analytics.js";
 
 async function runTests() {
   console.log("=== TURKIFY TEST SUITE ===");
@@ -121,6 +130,17 @@ async function runTests() {
     );
   } catch (err) {
     assert(false, `Supabase ping test crashed: ${err.message}`);
+  }
+
+  // Test 9: KVKK-Compliant Anonymous Analytics
+  try {
+    const stats = await getTurkifyStats(7);
+    assert(
+      stats !== null && typeof stats.total_unique_visitors_today === "number",
+      `Turkify stats query executed cleanly (today_unique=${stats?.total_unique_visitors_today ?? 0}, today_requests=${stats?.total_requests_today ?? 0})`
+    );
+  } catch (err) {
+    assert(false, `Turkify stats test crashed: ${err.message}`);
   }
 
   console.log(`\n=== RESULTS: ${passed} PASSED, ${failed} FAILED ===`);

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getTranslatedCatalog } from "@/lib/catalog";
 import { parseConfig } from "@/lib/config-helper";
+import { recordDailyVisit } from "@/lib/analytics";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -14,6 +15,9 @@ export async function GET(
   if (type !== "movie" && type !== "series") {
     return NextResponse.json({ metas: [] }, { status: 404 });
   }
+
+  // Non-blocking KVKK-compliant anonymous daily visitor analytics
+  recordDailyVisit(request);
 
   const cleanId = id.replace(/\.json$/, "").trim();
   const config = parseConfig(configuration);

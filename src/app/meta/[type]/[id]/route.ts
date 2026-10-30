@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getTranslatedMetadata } from "@/lib/meta-processor";
+import { recordDailyVisit } from "@/lib/analytics";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -23,6 +24,9 @@ export async function GET(
   const cleanId = id.replace(/\.json$/, "").trim();
   const userAgent = request.headers.get("user-agent") || "unknown";
   console.log(`[Turkify] Meta requested: ${type}/${cleanId} by User-Agent: ${userAgent}`);
+
+  // Non-blocking KVKK-compliant anonymous daily visitor analytics
+  recordDailyVisit(request);
 
   try {
     const result = await getTranslatedMetadata(type as "movie" | "series", cleanId);
