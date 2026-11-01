@@ -34,16 +34,8 @@ CREATE POLICY "Allow public read access"
 ON public.translated_meta FOR SELECT
 USING (true);
 
--- Eklenti sunucusu anon anahtarla yeni çevirileri ekleyebilir
-CREATE POLICY "Allow public insert"
-ON public.translated_meta FOR INSERT
-WITH CHECK (true);
-
--- Eklenti sunucusu anon anahtarla güncelleyebilir
-CREATE POLICY "Allow public update"
-ON public.translated_meta FOR UPDATE
-USING (true)
-WITH CHECK (true);
+-- Not: INSERT ve UPDATE yetkileri sunucu tarafında SUPABASE_SERVICE_ROLE_KEY
+-- ile yönetilir. Dışarıdan anonim key ile manipülasyon tamamen engellenmiştir.
 
 -- =========================================================
 -- Turkify: KVKK Uyumlu Anonim Günlük İstatistik Şeması
@@ -67,21 +59,10 @@ CREATE INDEX IF NOT EXISTS idx_daily_analytics_client ON public.daily_analytics(
 CREATE INDEX IF NOT EXISTS idx_daily_analytics_visitor_hash ON public.daily_analytics(visitor_hash);
 CREATE INDEX IF NOT EXISTS idx_daily_analytics_date_hash ON public.daily_analytics(date, visitor_hash);
 
+-- daily_analytics tablosu tamamen kilitlidir (RLS aktif, doğrudan anonim erişim yok).
+-- Yalnızca SECURITY DEFINER olan record_daily_visit() ve get_turkify_stats() fonksiyonları
+-- ile sunucu taraflı güvenli erişim sağlanır.
 ALTER TABLE public.daily_analytics ENABLE ROW LEVEL SECURITY;
-
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'daily_analytics' AND policyname = 'Allow public insert to daily_analytics') THEN
-        CREATE POLICY "Allow public insert to daily_analytics" ON public.daily_analytics FOR INSERT WITH CHECK (true);
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'daily_analytics' AND policyname = 'Allow public update to daily_analytics') THEN
-        CREATE POLICY "Allow public update to daily_analytics" ON public.daily_analytics FOR UPDATE USING (true) WITH CHECK (true);
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'daily_analytics' AND policyname = 'Allow public select on daily_analytics') THEN
-        CREATE POLICY "Allow public select on daily_analytics" ON public.daily_analytics FOR SELECT USING (true);
-    END IF;
-END
-$$;
 
 -- Atomik Ziyaretçi Kayıt Fonksiyonu (Eşzamanlı ve Hızlı)
 CREATE OR REPLACE FUNCTION public.record_daily_visit(

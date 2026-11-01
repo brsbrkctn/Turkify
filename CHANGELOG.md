@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.0] - 2026-11-01
+
+### Security & Hardening
+- **Secret Isolation & Zero Plaintext Exposure**:
+  - Fully rotated TMDB API credentials and migrated secrets to encrypted Vercel environment variables (`TMDB_API_KEY`).
+  - Purged all hardcoded fallback keys from source files (`src/lib/tmdb.ts`) and maintenance scripts.
+- **Supabase Row Level Security (RLS) Lockdown**:
+  - Dropped public `INSERT` and `UPDATE` policies on `public.translated_meta`, ensuring write operations are exclusively authorized via server-side `SUPABASE_SERVICE_ROLE_KEY`.
+  - Locked down `public.daily_analytics` against public REST discovery, restricting mutations and reads strictly to PostgreSQL `SECURITY DEFINER` procedures (`record_daily_visit`, `get_turkify_stats`).
+
+### Performance & Memory Optimization
+- **Bounded In-Memory Cache with LRU Eviction**:
+  - Implemented high-performance bounded cache pools with automatic FIFO/LRU eviction for `translator.ts` (max 2,500 entries) and `supabase.ts` (max 1,000 entries).
+  - Eliminates serverless memory leak hazards during high-concurrency peak streaming hours.
+
+### Resilience & Translation Engine
+- **Google GTX Circuit Breaker**:
+  - Added an intelligent circuit breaker pattern that detects HTTP 429 rate limits or network aborts on Google's GTX endpoint, immediately engaging a 60-second cool-down window.
+  - Bypasses repeated cascaded timeouts and instantly falls back to secondary translation mechanisms, preventing 60s+ client request hangs.
+- **MyMemory 10x Quota Expansion**:
+  - Added contact identification parameters (`&de=`) to MyMemory queries, expanding the free daily translation limit tenfold (from 1,000 words to 10,000 words).
+  - Expanded HTML entity decoder to handle numeric and hex character references cleanly.
+
+### Protocol Polish
+- **Strict Error Cache-Control Headers**:
+  - Enforced `Cache-Control: no-store, no-cache, must-revalidate` across all 404 and 500 error responses in `/meta/:type/:id.json` routes, preventing clients from caching transient errors.
+- **Version Parity**:
+  - Synchronized `v1.2.0` across `package.json`, `manifest.ts`, `Header.tsx`, `layout.tsx`, `keep-alive/route.ts`, and `supabase/schema.sql`.
+
+---
+
 ## [1.1.9] - 2026-11-01
 
 ### Added & Improved

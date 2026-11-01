@@ -26,7 +26,7 @@ export async function fetchTMDBMeta(
   type: "movie" | "series",
   imdbId: string
 ): Promise<TMDBResult | null> {
-  const apiKey = process.env.TMDB_API_KEY || "e37106e867ffbc3f2b8483f2f85c010b";
+  const apiKey = process.env.TMDB_API_KEY;
   if (!apiKey) return null;
 
   try {
@@ -131,7 +131,7 @@ export async function fetchTMDBSeasonEpisodes(
   seasonNumber: number
 ): Promise<Map<number, { title?: string; overview?: string; stillPath?: string }>> {
   const map = new Map<number, { title?: string; overview?: string; stillPath?: string }>();
-  const apiKey = process.env.TMDB_API_KEY || "e37106e867ffbc3f2b8483f2f85c010b";
+  const apiKey = process.env.TMDB_API_KEY;
   if (!apiKey || !tmdbId) return map;
 
   try {
@@ -176,7 +176,7 @@ export async function searchTMDB(
   type: "movie" | "series",
   query: string
 ): Promise<TMDBSearchResult[]> {
-  const apiKey = process.env.TMDB_API_KEY || "e37106e867ffbc3f2b8483f2f85c010b";
+  const apiKey = process.env.TMDB_API_KEY;
   if (!apiKey || !query.trim()) return [];
 
   const endpoint = type === "series" ? "tv" : "movie";

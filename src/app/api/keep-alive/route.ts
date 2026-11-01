@@ -12,7 +12,7 @@ export async function GET() {
     {
       status: "ok",
       service: "turkify",
-      version: "1.1.7",
+      version: "1.2.0",
       timestamp: new Date().toISOString(),
       database: {
         active: dbResult.ok,

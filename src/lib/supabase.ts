@@ -2,7 +2,36 @@ import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { CachedMetadata } from "./types";
 
 let supabaseClient: SupabaseClient | null = null;
+const MAX_METADATA_CACHE_SIZE = 1000;
 const memoryCache = new Map<string, { data: CachedMetadata; expiresAt: number }>();
+
+/**
+ * Stores metadata in fast memory cache with bounded LRU eviction to prevent memory leaks.
+ */
+function setMetadataMemoryCache(key: string, data: CachedMetadata, ttlMs: number = 6 * 60 * 60 * 1000): void {
+  const now = Date.now();
+
+  // If cache exceeds limit, first sweep expired entries
+  if (memoryCache.size >= MAX_METADATA_CACHE_SIZE) {
+    memoryCache.forEach((v, k) => {
+      if (v.expiresAt <= now) {
+        memoryCache.delete(k);
+      }
+    });
+
+    // If still over limit, evict the oldest 200 entries (FIFO / LRU in JS Map)
+    if (memoryCache.size >= MAX_METADATA_CACHE_SIZE) {
+      let count = 0;
+      for (const k of Array.from(memoryCache.keys())) {
+        memoryCache.delete(k);
+        count++;
+        if (count >= 200) break;
+      }
+    }
+  }
+
+  memoryCache.set(key, { data, expiresAt: now + ttlMs });
+}
 
 export function getSupabase(): SupabaseClient | null {
   if (supabaseClient) return supabaseClient;
@@ -57,10 +86,7 @@ export async function getCachedMeta(id: string): Promise<CachedMetadata | null> 
 
     if (data) {
       // Store in memory cache for 6 hours
-      memoryCache.set(cleanId, {
-        data: data as CachedMetadata,
-        expiresAt: Date.now() + 6 * 60 * 60 * 1000,
-      });
+      setMetadataMemoryCache(cleanId, data as CachedMetadata);
       return data as CachedMetadata;
     }
   } catch (err) {
@@ -78,10 +104,7 @@ export async function saveCachedMeta(meta: CachedMetadata): Promise<void> {
   const payload = { ...meta, id: cleanId };
 
   // Always store in memory cache
-  memoryCache.set(cleanId, {
-    data: payload,
-    expiresAt: Date.now() + 6 * 60 * 60 * 1000,
-  });
+  setMetadataMemoryCache(cleanId, payload);
 
   const client = getSupabase();
   if (!client) return;

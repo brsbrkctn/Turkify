@@ -4,8 +4,37 @@
  * to prevent HTTP 429 rate limits and reduce 30+ network calls down to 1-2 calls.
  */
 
+const MAX_TRANSLATION_CACHE_SIZE = 2500;
 const inMemoryCache = new Map<string, string>();
 const DELIMITER = "\n[[[TR_SEP]]]\n";
+
+// Google GTX Circuit Breaker State (trips on 429 or timeouts to prevent cascading 60s+ freezes)
+let googleGtxCooloffUntil = 0;
+const CIRCUIT_BREAKER_DURATION_MS = 60 * 1000; // 60 seconds cool-down
+
+export function isGoogleGtxAvailable(): boolean {
+  return Date.now() > googleGtxCooloffUntil;
+}
+
+export function tripGoogleGtxCircuitBreaker(reason: string): void {
+  googleGtxCooloffUntil = Date.now() + CIRCUIT_BREAKER_DURATION_MS;
+  console.warn(`[Translator] Google GTX circuit breaker tripped (${reason}). Bypassing Google for 60s.`);
+}
+
+/**
+ * Stores translated text in bounded memory cache with LRU eviction to prevent memory leaks.
+ */
+function setTranslationCache(key: string, value: string): void {
+  if (inMemoryCache.size >= MAX_TRANSLATION_CACHE_SIZE) {
+    let count = 0;
+    for (const k of Array.from(inMemoryCache.keys())) {
+      inMemoryCache.delete(k);
+      count++;
+      if (count >= 500) break;
+    }
+  }
+  inMemoryCache.set(key, value);
+}
 
 /**
  * Translates a single string to Turkish.
@@ -24,22 +53,28 @@ export async function translateText(
     return inMemoryCache.get(cacheKey)!;
   }
 
-  // 1. Primary engine: Google Translate GTX endpoint
-  try {
-    const translated = await translateWithGoogleGtx(trimmed, targetLang, sourceLang);
-    if (translated && translated.trim().length > 0) {
-      inMemoryCache.set(cacheKey, translated);
-      return translated;
+  // 1. Primary engine: Google Translate GTX endpoint (only if circuit breaker is healthy)
+  if (isGoogleGtxAvailable()) {
+    try {
+      const translated = await translateWithGoogleGtx(trimmed, targetLang, sourceLang);
+      if (translated && translated.trim().length > 0) {
+        setTranslationCache(cacheKey, translated);
+        return translated;
+      }
+    } catch (err: any) {
+      const msg = err?.message || String(err);
+      if (msg.includes("429") || msg.includes("503") || err?.name === "AbortError") {
+        tripGoogleGtxCircuitBreaker(msg);
+      }
+      console.warn("[Translator] Google GTX single failed:", msg);
     }
-  } catch (err) {
-    console.warn("[Translator] Google GTX single failed:", err);
   }
 
   // 2. Secondary fallback engine: MyMemory API
   try {
     const translated = await translateWithMyMemory(trimmed, targetLang);
     if (translated && translated.trim().length > 0) {
-      inMemoryCache.set(cacheKey, translated);
+      setTranslationCache(cacheKey, translated);
       return translated;
     }
   } catch (err) {
@@ -109,6 +144,15 @@ export async function batchTranslate(
 
   // Process chunks sequentially with short pause to avoid rate limits
   for (const chunk of chunks) {
+    // If circuit breaker is active, skip Google chunking and translate directly via fallback
+    if (!isGoogleGtxAvailable()) {
+      for (const item of chunk) {
+        const tr = await translateText(item.text, targetLang, sourceLang);
+        results[item.index] = tr;
+      }
+      continue;
+    }
+
     try {
       const combinedText = chunk.map((c) => c.text).join(DELIMITER);
       const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLang}&tl=${targetLang}&dt=t&q=${encodeURIComponent(
@@ -138,21 +182,29 @@ export async function batchTranslate(
             chunk.forEach((item, idx) => {
               const trText = parts[idx] || item.text;
               results[item.index] = trText;
-              inMemoryCache.set(`${sourceLang}:${targetLang}:${item.text}`, trText);
+              setTranslationCache(`${sourceLang}:${targetLang}:${item.text}`, trText);
             });
             continue;
           }
         }
+      } else {
+        if (response.status === 429 || response.status === 503) {
+          tripGoogleGtxCircuitBreaker(`HTTP ${response.status}`);
+        }
       }
 
       // If delimiter parsing failed or non-200, fallback to individual translation for this chunk
-      console.warn("[Translator] Batch delimiter split mismatch, falling back to individual...");
+      console.warn("[Translator] Batch delimiter split mismatch or non-200, falling back to individual...");
       for (const item of chunk) {
         const tr = await translateText(item.text, targetLang, sourceLang);
         results[item.index] = tr;
       }
-    } catch (err) {
-      console.warn("[Translator] Batch chunk error, falling back to individual:", err);
+    } catch (err: any) {
+      const msg = err?.message || String(err);
+      if (msg.includes("429") || msg.includes("503") || err?.name === "AbortError") {
+        tripGoogleGtxCircuitBreaker(msg);
+      }
+      console.warn("[Translator] Batch chunk error, falling back to individual:", msg);
       for (const item of chunk) {
         const tr = await translateText(item.text, targetLang, sourceLang);
         results[item.index] = tr;
@@ -197,6 +249,9 @@ async function translateWithGoogleGtx(
     });
 
     if (!response.ok) {
+      if (response.status === 429 || response.status === 503) {
+        tripGoogleGtxCircuitBreaker(`HTTP ${response.status}`);
+      }
       throw new Error(`Google translate returned status ${response.status}`);
     }
 
@@ -221,8 +276,13 @@ function decodeHtmlEntities(str: string): string {
     .replace(/&apos;/g, "'")
     .replace(/&amp;/g, "&")
     .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">");
+    .replace(/&gt;/g, ">")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(Number(dec)))
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
 }
+
+const MYMEMORY_EMAIL = process.env.MYMEMORY_EMAIL || "brsberkectn@gmail.com";
 
 /**
  * Secondary fallback using MyMemory API.
@@ -259,9 +319,10 @@ export async function translateWithMyMemory(
 
 async function translateSingleMyMemory(text: string, targetLang: string): Promise<string> {
   const query = text.length > 450 ? text.slice(0, 450) : text;
+  const emailParam = MYMEMORY_EMAIL ? `&de=${encodeURIComponent(MYMEMORY_EMAIL)}` : "";
   const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(
     query
-  )}&langpair=en|${targetLang}`;
+  )}&langpair=en|${targetLang}${emailParam}`;
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 6000);

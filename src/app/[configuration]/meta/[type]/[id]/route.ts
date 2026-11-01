@@ -17,7 +17,10 @@ export async function GET(
       { meta: null },
       {
         status: 404,
-        headers: { "Access-Control-Allow-Origin": "*" },
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Cache-Control": "no-store, no-cache, must-revalidate",
+        },
       }
     );
   }
@@ -49,7 +52,10 @@ export async function GET(
       { meta: null },
       {
         status: 500,
-        headers: { "Access-Control-Allow-Origin": "*" },
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Cache-Control": "no-store, no-cache, must-revalidate",
+        },
       }
     );
   }

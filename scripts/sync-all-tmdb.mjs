@@ -4,7 +4,7 @@ const SUPABASE_URL = "https://akfnjozqjewiaxfcvgsf.supabase.co";
 const SUPABASE_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFrZm5qb3pxamV3aWF4ZmN2Z3NmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI2MTg2NDUsImV4cCI6MjEwODE5NDY0NX0.DWUPBanll_IGRvBCfD_DJ_8uJCsFw9MeStK_Z-rYy8A";
 
-const TMDB_API_KEY = "e37106e867ffbc3f2b8483f2f85c010b";
+const TMDB_API_KEY = process.env.TMDB_API_KEY || "";
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 const DELIMITER = "\n[[[TR_SEP]]]\n";
 
