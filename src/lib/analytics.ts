@@ -32,7 +32,7 @@ function detectClientType(userAgent: string): "Nuvio" | "Stremio" | "Web" | "Oth
   if (ua.includes("nuvio")) return "Nuvio";
   if (ua.includes("stremio")) return "Stremio";
   if (ua.includes("mozilla") || ua.includes("chrome") || ua.includes("safari")) return "Web";
-  if (ua.includes("okhttp")) return "Nuvio"; // Nuvio Android builds frequently identify via OkHttp
+  if (ua.includes("okhttp") || ua.includes("ktor")) return "Nuvio"; // Nuvio Android (OkHttp) & iOS (Ktor)
   return "Other";
 }
 
