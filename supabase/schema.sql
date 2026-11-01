@@ -64,6 +64,8 @@ CREATE TABLE IF NOT EXISTS public.daily_analytics (
 
 CREATE INDEX IF NOT EXISTS idx_daily_analytics_date ON public.daily_analytics(date DESC);
 CREATE INDEX IF NOT EXISTS idx_daily_analytics_client ON public.daily_analytics(client_type);
+CREATE INDEX IF NOT EXISTS idx_daily_analytics_visitor_hash ON public.daily_analytics(visitor_hash);
+CREATE INDEX IF NOT EXISTS idx_daily_analytics_date_hash ON public.daily_analytics(date, visitor_hash);
 
 ALTER TABLE public.daily_analytics ENABLE ROW LEVEL SECURITY;
 
@@ -93,7 +95,7 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
 DECLARE
-    v_today DATE := CURRENT_DATE;
+    v_today DATE := (NOW() AT TIME ZONE 'Europe/Istanbul')::DATE;
     v_id TEXT := v_today || ':' || p_visitor_hash || ':' || p_client_type;
 BEGIN
     INSERT INTO public.daily_analytics (id, date, visitor_hash, client_type, country, city, request_count, first_seen_at, last_seen_at)
@@ -106,7 +108,7 @@ BEGIN
 END;
 $$;
 
--- İstatistik Çekme Fonksiyonu
+-- İstatistik Çekme Fonksiyonu (Altın Standart: Yeni vs Sadık Kullanıcı, Şehir Sıralaması, Tüm Zamanlar)
 CREATE OR REPLACE FUNCTION public.get_turkify_stats(p_days INT DEFAULT 7)
 RETURNS JSON
 LANGUAGE plpgsql
@@ -114,42 +116,94 @@ SECURITY DEFINER
 AS $$
 DECLARE
     result JSON;
+    v_today DATE := (NOW() AT TIME ZONE 'Europe/Istanbul')::DATE;
 BEGIN
     SELECT json_build_object(
+        'total_unique_visitors_all_time', (
+            SELECT COUNT(DISTINCT visitor_hash) FROM public.daily_analytics
+        ),
+        'total_requests_all_time', (
+            SELECT COALESCE(SUM(request_count), 0) FROM public.daily_analytics
+        ),
         'total_unique_visitors_today', (
-            SELECT COUNT(DISTINCT visitor_hash) FROM public.daily_analytics WHERE date = CURRENT_DATE
+            SELECT COUNT(DISTINCT visitor_hash) FROM public.daily_analytics WHERE date = v_today
+        ),
+        'new_visitors_today', (
+            SELECT COUNT(DISTINCT visitor_hash) 
+            FROM public.daily_analytics 
+            WHERE date = v_today 
+              AND visitor_hash NOT IN (
+                SELECT DISTINCT visitor_hash 
+                FROM public.daily_analytics 
+                WHERE date < v_today
+              )
+        ),
+        'returning_visitors_today', (
+            SELECT COUNT(DISTINCT visitor_hash) 
+            FROM public.daily_analytics 
+            WHERE date = v_today 
+              AND visitor_hash IN (
+                SELECT DISTINCT visitor_hash 
+                FROM public.daily_analytics 
+                WHERE date < v_today
+              )
         ),
         'total_requests_today', (
-            SELECT COALESCE(SUM(request_count), 0) FROM public.daily_analytics WHERE date = CURRENT_DATE
+            SELECT COALESCE(SUM(request_count), 0) FROM public.daily_analytics WHERE date = v_today
         ),
         'platforms_today', (
             SELECT COALESCE(json_object_agg(client_type, count), '{}'::json) FROM (
                 SELECT client_type, COUNT(DISTINCT visitor_hash) as count
                 FROM public.daily_analytics
-                WHERE date = CURRENT_DATE
+                WHERE date = v_today
                 GROUP BY client_type
+                ORDER BY count DESC
             ) s
         ),
         'countries_today', (
             SELECT COALESCE(json_object_agg(country, count), '{}'::json) FROM (
                 SELECT COALESCE(country, 'Unknown') as country, COUNT(DISTINCT visitor_hash) as count
                 FROM public.daily_analytics
-                WHERE date = CURRENT_DATE
+                WHERE date = v_today
                 GROUP BY country
                 ORDER BY count DESC
                 LIMIT 5
             ) c
         ),
+        'top_cities_today', (
+            SELECT COALESCE(json_agg(city_stat), '[]'::json) FROM (
+                SELECT 
+                    COALESCE(NULLIF(city, ''), 'Bilinmiyor') as city,
+                    country,
+                    COUNT(DISTINCT visitor_hash) as users,
+                    SUM(request_count) as requests
+                FROM public.daily_analytics
+                WHERE date = v_today
+                GROUP BY city, country
+                ORDER BY requests DESC
+                LIMIT 10
+            ) city_stat
+        ),
         'recent_days', (
             SELECT COALESCE(json_agg(day_stat), '[]'::json) FROM (
                 SELECT
-                    date,
-                    COUNT(DISTINCT visitor_hash) as unique_visitors,
-                    SUM(request_count) as total_requests
-                FROM public.daily_analytics
-                WHERE date >= CURRENT_DATE - (p_days || ' days')::INTERVAL
-                GROUP BY date
-                ORDER BY date DESC
+                    d.day_date as date,
+                    COUNT(DISTINCT da.visitor_hash) as unique_visitors,
+                    COUNT(DISTINCT CASE WHEN da.visitor_hash NOT IN (
+                        SELECT prev.visitor_hash FROM public.daily_analytics prev WHERE prev.date < d.day_date
+                    ) THEN da.visitor_hash END) as new_visitors,
+                    COUNT(DISTINCT CASE WHEN da.visitor_hash IN (
+                        SELECT prev.visitor_hash FROM public.daily_analytics prev WHERE prev.date < d.day_date
+                    ) THEN da.visitor_hash END) as returning_visitors,
+                    COALESCE(SUM(da.request_count), 0) as total_requests
+                FROM (
+                    SELECT (v_today - i)::DATE as day_date
+                    FROM generate_series(0, p_days - 1) i
+                ) d
+                LEFT JOIN public.daily_analytics da ON da.date = d.day_date
+                GROUP BY d.day_date
+                HAVING COUNT(DISTINCT da.visitor_hash) > 0 OR SUM(da.request_count) > 0
+                ORDER BY d.day_date DESC
             ) day_stat
         )
     ) INTO result;

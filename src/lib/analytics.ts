@@ -37,15 +37,16 @@ function detectClientType(userAgent: string): "Nuvio" | "Stremio" | "Web" | "Oth
 }
 
 /**
- * Generates an irreversible, privacy-preserving cryptographic hash (KVKK / GDPR compliant).
- * Formula: SHA-256(IP + Date + Salt)
- * Real IP is NEVER stored. Hash rotates daily, preventing multi-day tracking.
+ * Generates an irreversible, privacy-preserving cryptographic device hash (KVKK / GDPR compliant).
+ * Formula: SHA-256(IP + Normalized_User_Agent + Salt)
+ * Real IP is NEVER stored. Provides stable, persistent identity per physical device/connection.
  */
-function generateVisitorHash(ip: string, dateStr: string): string {
+function generateVisitorHash(ip: string, userAgent: string): string {
   const salt = process.env.ANALYTICS_SALT || "turkify-salt-kvkk-2026";
+  const normalizedUa = (userAgent || "unknown").trim().toLowerCase().slice(0, 120);
   return crypto
     .createHash("sha256")
-    .update(`${ip}:${dateStr}:${salt}`)
+    .update(`${ip}:${normalizedUa}:${salt}`)
     .digest("hex")
     .slice(0, 32);
 }
@@ -72,8 +73,7 @@ export function recordDailyVisit(request: NextRequest): void {
       if (!clientIp || clientIp === "unknown") return;
 
       const clientType = detectClientType(userAgent);
-      const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
-      const visitorHash = generateVisitorHash(clientIp, today);
+      const visitorHash = generateVisitorHash(clientIp, userAgent);
 
       // 3. Debounce rapid sequential requests from same visitor (e.g. browsing 20 episodes)
       const cacheKey = `${visitorHash}:${clientType}`;
@@ -119,13 +119,25 @@ export function recordDailyVisit(request: NextRequest): void {
 }
 
 export interface TurkifyStats {
+  total_unique_visitors_all_time: number;
+  total_requests_all_time: number;
   total_unique_visitors_today: number;
+  new_visitors_today: number;
+  returning_visitors_today: number;
   total_requests_today: number;
   platforms_today: Record<string, number>;
   countries_today: Record<string, number>;
+  top_cities_today: Array<{
+    city: string;
+    country: string;
+    users: number;
+    requests: number;
+  }>;
   recent_days: Array<{
     date: string;
     unique_visitors: number;
+    new_visitors: number;
+    returning_visitors: number;
     total_requests: number;
   }>;
 }

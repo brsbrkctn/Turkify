@@ -132,12 +132,15 @@ async function runTests() {
     assert(false, `Supabase ping test crashed: ${err.message}`);
   }
 
-  // Test 9: KVKK-Compliant Anonymous Analytics
+  // Test 9: KVKK-Compliant Anonymous Analytics (Gold Standard)
   try {
     const stats = await getTurkifyStats(7);
     assert(
-      stats !== null && typeof stats.total_unique_visitors_today === "number",
-      `Turkify stats query executed cleanly (today_unique=${stats?.total_unique_visitors_today ?? 0}, today_requests=${stats?.total_requests_today ?? 0})`
+      stats !== null &&
+      typeof stats.total_unique_visitors_today === "number" &&
+      typeof stats.total_unique_visitors_all_time === "number" &&
+      typeof stats.new_visitors_today === "number",
+      `Turkify stats query executed cleanly (today_unique=${stats?.total_unique_visitors_today ?? 0}, all_time=${stats?.total_unique_visitors_all_time ?? 0}, new=${stats?.new_visitors_today ?? 0})`
     );
   } catch (err) {
     assert(false, `Turkify stats test crashed: ${err.message}`);

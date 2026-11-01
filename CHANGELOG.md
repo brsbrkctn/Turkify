@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.9] - 2026-11-01
+
+### Added & Improved
+- **Privacy-Preserving Anonymous Client Analytics & Retention Metrics**:
+  - Upgraded cryptographic client hash formula to `SHA-256(IP + Normalized_User_Agent + Salt)`. Eliminates daily hash jitter while strictly keeping raw IP and raw User-Agent unpersisted and irreversible (100% KVKK/GDPR compliant).
+  - Enables persistent identification of unique physical devices across days, allowing precise segmentation of **New Visitors** (first seen today) vs. **Returning Visitors** (active today with prior history) vs. **All-Time Unique User Base**.
+  - Distinctly differentiates multiple devices sharing a single IP or local network (e.g., Android TV, Windows PC, mobile phone) via client signature hashing.
+- **Enhanced Supabase Analytics RPC & Index Optimization**:
+  - Upgraded `public.get_turkify_stats` PostgreSQL procedure to atomically calculate all-time unique users, all-time requests, new vs. returning visitor breakdown, top 10 cities by request volume, and multi-day retention trends.
+  - Added specialized b-tree indexes on `(visitor_hash)` and `(date, visitor_hash)` in `daily_analytics` for sub-millisecond query execution.
+- **Upgraded Terminal Reporting Tool (`scripts/get-stats.mjs`)**:
+  - Enhanced CLI dashboard displaying All-Time totals, Daily Active Users (DAU), New vs. Returning splits, platform distribution, top active cities, and a 7-day retention history table.
+- **Version & Schema Synchronization**:
+  - Synchronized `v1.1.9` across `package.json`, `manifest.ts`, `Header.tsx`, `layout.tsx` Schema.org graphs, and `supabase/schema.sql`.
+
+---
+
 ## [1.1.8] - 2026-10-30
 
 ### Added & Improved
