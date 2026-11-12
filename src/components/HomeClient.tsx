@@ -22,7 +22,7 @@ export function HomeClient({ initialTotalUsers }: HomeClientProps) {
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (typeof data?.totalUsers === "number" && data.totalUsers > 0) {
-          setTotalUsers(data.totalUsers);
+          setTotalUsers((prev) => Math.max(prev ?? 0, data.totalUsers));
         }
       })
       .catch(() => {

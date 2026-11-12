@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.4] - 2026-11-13
+
+### Fixed
+- **Monotonic Stats Rehydration (`HomeClient.tsx`)**:
+  - Ensured the client-side user count rehydration uses `Math.max(prev, data.totalUsers)` so that stale Edge CDN responses never downgrade a fresher initial server-rendered count.
+- **Version Parity**:
+  - Synchronized `v1.2.4` across `package.json`, `manifest.ts`, `Header.tsx`, `layout.tsx`, `keep-alive/route.ts`, and `CHANGELOG.md`.
+
+---
+
 ## [1.2.3] - 2026-11-12
 
 ### Changed
