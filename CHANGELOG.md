@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.2] - 2026-11-12
+
+### Changed
+- **Prominent Hero User Count Badge (`Hero.tsx`)**:
+  - Repositioned the live user count badge front-and-center directly above the primary hero CTA buttons (`mb-7`) with elevated gradient-glass styling and subtle sky glow (`border-sky-400/35`).
+  - Removed the blinking indicator dot and simplified the copy cleanly to `{count} Kullanıcı` for higher readability and visual impact.
+- **Version Parity**:
+  - Synchronized `v1.2.2` across `package.json`, `manifest.ts`, `Header.tsx`, `layout.tsx`, `keep-alive/route.ts`, and `CHANGELOG.md`.
+
+---
+
 ## [1.2.1] - 2026-11-12
 
 ### Added

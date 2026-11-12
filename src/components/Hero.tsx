@@ -24,7 +24,7 @@ export function Hero({ onScrollToConfig, onScrollToGuide, totalUsers = null }: H
         </div>
 
         {/* Main Headline - Line break on 'Artık Türkçe.' */}
-        <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-white leading-[1.18] mb-6 animate-fade-up delay-100">
+        <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-white leading-[1.18] mb-5 animate-fade-up delay-100">
           Dizi ve Filmlerin İçerikleri
           <br />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-cyan-300 to-orange-400">
@@ -32,11 +32,33 @@ export function Hero({ onScrollToConfig, onScrollToGuide, totalUsers = null }: H
           </span>
         </h1>
 
-        <p className="text-base sm:text-xl text-slate-300 max-w-2xl mx-auto mb-10 leading-relaxed font-normal animate-fade-up delay-150">
+        <p className="text-base sm:text-xl text-slate-300 max-w-2xl mx-auto mb-6 leading-relaxed font-normal animate-fade-up delay-150">
           Torrent ve Cinemeta kaynaklı yabancı dizi/film açıklamaları, türleri
           ve sezonluk bölüm özetleri <strong>Turkify</strong> ile anında Türkçe’ye
           çevrilir. Sıfır bekleme, akıllı önbellek ve kesintisiz akış.
         </p>
+
+        {/* Prominent User Count Badge (Front-and-center above CTAs, zero layout shift) */}
+        <div className="mb-7 min-h-[46px] flex items-center justify-center animate-fade-up delay-150">
+          {typeof totalUsers === "number" && totalUsers > 0 && (
+            <div
+              className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-gradient-to-r from-sky-500/15 via-cyan-500/10 to-orange-500/15 border border-sky-400/35 shadow-[0_0_24px_rgba(56,189,248,0.14)] backdrop-blur-sm transition-colors duration-200 hover:border-sky-400/55"
+              title="Turkify eklentisini kullanan toplam kullanıcı sayısı"
+            >
+              <span className="w-7 h-7 rounded-full bg-sky-500/20 border border-sky-400/30 flex items-center justify-center text-sky-300 shrink-0">
+                <Users className="w-4 h-4" />
+              </span>
+              <span className="flex items-baseline gap-1.5">
+                <strong className="text-base sm:text-lg font-extrabold text-white tabular-nums tracking-tight">
+                  {new Intl.NumberFormat("tr-TR").format(totalUsers)}
+                </strong>
+                <span className="text-sm sm:text-base font-semibold text-sky-100">
+                  Kullanıcı
+                </span>
+              </span>
+            </div>
+          )}
+        </div>
 
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-up delay-200">
@@ -59,30 +81,8 @@ export function Hero({ onScrollToConfig, onScrollToGuide, totalUsers = null }: H
           </button>
         </div>
 
-        {/* Total User Count Badge (Reserved height for zero layout shift) */}
-        <div className="mt-6 min-h-[34px] flex items-center justify-center animate-fade-up delay-250">
-          {typeof totalUsers === "number" && totalUsers > 0 && (
-            <div
-              className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-slate-900/80 border border-slate-800 hover:border-sky-500/35 text-xs sm:text-sm text-slate-300 shadow-sm transition-colors duration-200"
-              title="Turkify eklentisini kullanan toplam kullanıcı sayısı"
-            >
-              <span className="relative flex h-2 w-2 shrink-0" aria-hidden="true">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
-              </span>
-              <Users className="w-3.5 h-3.5 text-sky-400 shrink-0" />
-              <span>
-                <strong className="font-semibold text-white tabular-nums">
-                  {new Intl.NumberFormat("tr-TR").format(totalUsers)}
-                </strong>{" "}
-                Toplam Kullanıcı
-              </span>
-            </div>
-          )}
-        </div>
-
         {/* Value props badges with refined hover elevation */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-10 max-w-3xl mx-auto pt-8 border-t border-slate-800/80 animate-fade-up delay-300">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-12 max-w-3xl mx-auto pt-8 border-t border-slate-800/80 animate-fade-up delay-300">
           <div className="flex items-center gap-3 p-3.5 rounded-xl bg-slate-900/50 border border-slate-800/80 hover:border-sky-500/40 hover:bg-slate-900/80 transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] hover:-translate-y-1 shadow-sm hover:shadow-lg hover:shadow-sky-950/30 group">
             <div className="w-9 h-9 rounded-lg bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 shrink-0 group-hover:scale-110 transition-transform duration-200">
               <Zap className="w-4 h-4" />
