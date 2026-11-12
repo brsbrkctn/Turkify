@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.3] - 2026-11-12
+
+### Changed
+- **12-Hour Edge & ISR Stats Cache Optimization (`43200s`)**:
+  - Increased `/api/stats` CDN cache (`s-maxage=43200, stale-while-revalidate=43200`) and landing/configure ISR revalidation (`revalidate = 43200`) from 5 minutes to 12 hours to minimize Supabase database load to ~2 queries/day while keeping daily growth fresh.
+- **Version Parity**:
+  - Synchronized `v1.2.3` across `package.json`, `manifest.ts`, `Header.tsx`, `layout.tsx`, `keep-alive/route.ts`, and `CHANGELOG.md`.
+
+---
+
 ## [1.2.2] - 2026-11-12
 
 ### Changed

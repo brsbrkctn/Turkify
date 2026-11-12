@@ -17,7 +17,7 @@ export async function GET() {
       status: 200,
       headers: {
         "Access-Control-Allow-Origin": "*",
-        "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
+        "Cache-Control": "public, s-maxage=43200, stale-while-revalidate=43200",
         "Content-Type": "application/json; charset=utf-8",
       },
     }

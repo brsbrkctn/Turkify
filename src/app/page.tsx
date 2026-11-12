@@ -2,7 +2,7 @@ import React from "react";
 import { HomeClient } from "@/components/HomeClient";
 import { getTurkifyStats } from "@/lib/analytics";
 
-export const revalidate = 300;
+export const revalidate = 43200;
 
 export default async function Home() {
   let initialTotalUsers: number | null = null;
