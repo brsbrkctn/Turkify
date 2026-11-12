@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.1] - 2026-11-12
+
+### Added
+- **Live Total User Count Badge (`Hero.tsx` & `/api/stats`)**:
+  - Added a real-time **Toplam Kullanıcı** badge to the landing page hero section showing the cumulative unique user count formatted cleanly with `tr-TR` locale and zero layout shift.
+  - Added edge-cached public endpoint `GET /api/stats` (`s-maxage=300, stale-while-revalidate=600`) backed by the privacy-preserving `get_turkify_stats` RPC alongside 5-minute ISR rendering (`revalidate = 300`) in `page.tsx` and `configure/page.tsx`.
+- **Version Parity**:
+  - Synchronized `v1.2.1` across `package.json`, `manifest.ts`, `Header.tsx`, `layout.tsx`, `keep-alive/route.ts`, and `CHANGELOG.md`.
+
+---
+
 ## [1.2.0] - 2026-11-01
 
 ### Security & Hardening

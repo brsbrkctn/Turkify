@@ -1,14 +1,15 @@
 "use client";
 
 import React from "react";
-import { Sparkles, Download, Layers, ShieldCheck, Zap } from "lucide-react";
+import { Sparkles, Download, Layers, ShieldCheck, Zap, Users } from "lucide-react";
 
 interface HeroProps {
   onScrollToConfig: () => void;
   onScrollToGuide: () => void;
+  totalUsers?: number | null;
 }
 
-export function Hero({ onScrollToConfig, onScrollToGuide }: HeroProps) {
+export function Hero({ onScrollToConfig, onScrollToGuide, totalUsers = null }: HeroProps) {
   return (
     <section className="relative pt-12 pb-16 sm:pt-20 sm:pb-24 overflow-hidden">
       {/* Background ambient dual glow with slow organic breathing */}
@@ -58,8 +59,30 @@ export function Hero({ onScrollToConfig, onScrollToGuide }: HeroProps) {
           </button>
         </div>
 
+        {/* Total User Count Badge (Reserved height for zero layout shift) */}
+        <div className="mt-6 min-h-[34px] flex items-center justify-center animate-fade-up delay-250">
+          {typeof totalUsers === "number" && totalUsers > 0 && (
+            <div
+              className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-slate-900/80 border border-slate-800 hover:border-sky-500/35 text-xs sm:text-sm text-slate-300 shadow-sm transition-colors duration-200"
+              title="Turkify eklentisini kullanan toplam kullanıcı sayısı"
+            >
+              <span className="relative flex h-2 w-2 shrink-0" aria-hidden="true">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
+              </span>
+              <Users className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+              <span>
+                <strong className="font-semibold text-white tabular-nums">
+                  {new Intl.NumberFormat("tr-TR").format(totalUsers)}
+                </strong>{" "}
+                Toplam Kullanıcı
+              </span>
+            </div>
+          )}
+        </div>
+
         {/* Value props badges with refined hover elevation */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-14 max-w-3xl mx-auto pt-8 border-t border-slate-800/80 animate-fade-up delay-300">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-10 max-w-3xl mx-auto pt-8 border-t border-slate-800/80 animate-fade-up delay-300">
           <div className="flex items-center gap-3 p-3.5 rounded-xl bg-slate-900/50 border border-slate-800/80 hover:border-sky-500/40 hover:bg-slate-900/80 transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] hover:-translate-y-1 shadow-sm hover:shadow-lg hover:shadow-sky-950/30 group">
             <div className="w-9 h-9 rounded-lg bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 shrink-0 group-hover:scale-110 transition-transform duration-200">
               <Zap className="w-4 h-4" />

@@ -1,5 +1,7 @@
 import Home from "../page";
 
-export default function ConfigurePage() {
+export const revalidate = 300;
+
+export default async function ConfigurePage() {
   return <Home />;
 }

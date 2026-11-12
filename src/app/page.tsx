@@ -1,35 +1,20 @@
-"use client";
-
 import React from "react";
-import { Header } from "@/components/Header";
-import { Hero } from "@/components/Hero";
-import { Configurator } from "@/components/Configurator";
-import { LivePreview } from "@/components/LivePreview";
-import { NuvioGuide } from "@/components/NuvioGuide";
-import { Footer } from "@/components/Footer";
+import { HomeClient } from "@/components/HomeClient";
+import { getTurkifyStats } from "@/lib/analytics";
 
-export default function Home() {
-  const scrollToConfig = () => {
-    document.getElementById("configurator")?.scrollIntoView({ behavior: "smooth" });
-  };
+export const revalidate = 300;
 
-  const scrollToGuide = () => {
-    document.getElementById("guide")?.scrollIntoView({ behavior: "smooth" });
-  };
+export default async function Home() {
+  let initialTotalUsers: number | null = null;
 
-  return (
-    <main className="min-h-screen flex flex-col justify-between">
-      <Header />
-      <div className="flex-1">
-        <Hero
-          onScrollToConfig={scrollToConfig}
-          onScrollToGuide={scrollToGuide}
-        />
-        <LivePreview />
-        <Configurator />
-        <NuvioGuide />
-      </div>
-      <Footer />
-    </main>
-  );
+  try {
+    const stats = await getTurkifyStats(1);
+    if (typeof stats?.total_unique_visitors_all_time === "number" && stats.total_unique_visitors_all_time > 0) {
+      initialTotalUsers = stats.total_unique_visitors_all_time;
+    }
+  } catch {
+    initialTotalUsers = null;
+  }
+
+  return <HomeClient initialTotalUsers={initialTotalUsers} />;
 }
