@@ -1,5 +1,11 @@
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
+
+const inter = Inter({
+  subsets: ["latin", "latin-ext"],
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://turkify-addon.vercel.app"),
@@ -76,7 +82,7 @@ const softwareSchema = {
     "Stremio ve Nuvio için film, dizi ve bölüm açıklamalarını otomatik Türkçe'ye çevirip yüksek hızda sunan açık kaynak eklenti.",
   url: "https://turkify-addon.vercel.app",
   image: "https://turkify-addon.vercel.app/logo.png",
-  softwareVersion: "1.2.7",
+  softwareVersion: "1.2.8",
   author: {
     "@type": "Person",
     name: "Barış Berke Çetin",
@@ -164,7 +170,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteSchema) }}
         />
       </head>
-      <body className="min-h-screen bg-[#070b14] text-slate-100 antialiased selection:bg-sky-500 selection:text-white">
+      <body className={`${inter.className} min-h-screen bg-[#070b14] text-slate-100 antialiased selection:bg-sky-500 selection:text-white`}>
         {children}
       </body>
     </html>

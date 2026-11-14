@@ -12,6 +12,8 @@ export function Header() {
             <img
               src="/logo.png"
               alt="Turkify Logo"
+              width={36}
+              height={36}
               className="w-full h-full object-contain drop-shadow-[0_0_12px_rgba(56,189,248,0.35)] hover:scale-105 transition-transform"
             />
           </div>
@@ -21,7 +23,7 @@ export function Header() {
                 Turkify
               </span>
               <span className="text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20">
-                v1.2.7
+                v1.2.8
               </span>
             </div>
             <p className="text-xs text-slate-400 hidden sm:block">

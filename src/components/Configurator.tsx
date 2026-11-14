@@ -88,6 +88,8 @@ export function Configurator({ initialConfiguration }: ConfiguratorProps = {}) {
         textArea.style.position = "fixed";
         textArea.style.left = "-999999px";
         textArea.style.top = "-999999px";
+        textArea.style.fontSize = "16px";
+        textArea.style.transform = "scale(0)";
         textArea.setAttribute("readonly", "");
         document.body.appendChild(textArea);
         textArea.focus();

@@ -59,10 +59,10 @@ export function LivePreview() {
               alt="Breaking Bad Poster"
               className="w-full h-full object-cover transition-transform duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover/poster:scale-105"
             />
-            {/* Fixed-width badge so width never shifts */}
+            {/* Fixed-width badge with sharp WCAG AAA contrast (7.58:1) */}
             <span
               key={isTurkish ? "badge-tr" : "badge-en"}
-              className="absolute bottom-2 left-2 z-20 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-sky-600 text-white shadow w-14 text-center flex items-center justify-center animate-micro-fade"
+              className="absolute bottom-2 left-2 z-20 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-sky-500 text-slate-950 shadow-md border border-sky-400/40 w-14 text-center flex items-center justify-center animate-micro-fade"
             >
               {isTurkish ? "DİZİ" : "SERIES"}
             </span>

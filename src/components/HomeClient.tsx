@@ -6,6 +6,7 @@ import { Hero } from "@/components/Hero";
 import { Configurator } from "@/components/Configurator";
 import { LivePreview } from "@/components/LivePreview";
 import { NuvioGuide } from "@/components/NuvioGuide";
+import { FAQ } from "@/components/FAQ";
 import { Footer } from "@/components/Footer";
 
 interface HomeClientProps {
@@ -80,6 +81,7 @@ export function HomeClient({
         <LivePreview />
         <Configurator initialConfiguration={initialConfiguration} />
         <NuvioGuide />
+        <FAQ />
       </div>
       <Footer />
     </main>

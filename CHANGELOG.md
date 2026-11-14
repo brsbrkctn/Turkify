@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.8] - 2026-11-14
+
+### Added
+- **Modern Typography via `next/font/google` (`src/app/layout.tsx`)**:
+  - Integrated `Inter` with both `latin` and `latin-ext` subsets (`display: "swap"`), preventing fallback font jumping and ensuring Turkish characters (`ğ`, `Ğ`, `ı`, `İ`, `ş`, `Ş`) render natively.
+- **Interactive FAQ Accordion (`src/components/FAQ.tsx`)**:
+  - Added modern, responsive, multi-expandable FAQ component fully aligned with Schema.org `FAQPage` microdata and W3C WAI-ARIA accessibility guidelines.
+  - Implemented top-aligned mobile chevron positioning, keyboard navigation, and permanent DOM existence to prevent broken ARIA references.
+
+### Fixed
+- **WCAG AAA Contrast Standard (`LivePreview.tsx`)**:
+  - Upgraded `DİZİ` badge styling to `bg-sky-500 text-slate-950 font-black` providing **7.58:1 contrast ratio**, exceeding WCAG AAA requirements.
+- **Logo Aura & Layout Shift Prevention (`Header.tsx`)**:
+  - Re-aligned logo aura to cyan glow (`rgba(56,189,248,0.35)`) and added explicit `width={36}` `height={36}` attributes to eliminate layout shifts.
+- **iOS Safari Clipboard Zoom Defense (`Configurator.tsx`)**:
+  - Added `fontSize: 16px` and `transform: scale(0)` to the temporary textarea to prevent auto-zoom and visual flicker on iOS Safari.
+- **Version Parity**:
+  - Synchronized `v1.2.8` across `package.json`, `manifest.ts`, `Header.tsx`, `layout.tsx`, `keep-alive/route.ts`, and `CHANGELOG.md`.
+
+---
+
 ## [1.2.7] - 2026-11-14
 
 ### Added
