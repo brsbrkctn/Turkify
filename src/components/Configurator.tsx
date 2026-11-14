@@ -1,22 +1,54 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Copy, Check, ExternalLink, Settings2, HelpCircle, AlertTriangle } from "lucide-react";
-import { encodeConfig } from "@/lib/config-helper";
+import {
+  Copy,
+  Check,
+  ExternalLink,
+  Settings2,
+  HelpCircle,
+  AlertTriangle,
+  Smartphone,
+  Globe,
+} from "lucide-react";
+import { encodeConfig, parseConfig } from "@/lib/config-helper";
 
-export function Configurator() {
+interface ConfiguratorProps {
+  initialConfiguration?: string;
+}
+
+export function Configurator({ initialConfiguration }: ConfiguratorProps = {}) {
   const [keepOriginalTitle, setKeepOriginalTitle] = useState(true);
   const [translateEpisodes, setTranslateEpisodes] = useState(true);
   const [enrichTmdbMedia, setEnrichTmdbMedia] = useState(true);
   const [enableCatalogs, setEnableCatalogs] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [copiedNuvio, setCopiedNuvio] = useState(false);
   const [origin, setOrigin] = useState("");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       setOrigin(window.location.origin);
     }
-  }, []);
+
+    const configToParse =
+      initialConfiguration ||
+      (typeof window !== "undefined" && window.location.search
+        ? window.location.search.slice(1)
+        : "");
+
+    if (configToParse) {
+      try {
+        const parsed = parseConfig(configToParse);
+        if (parsed.keepOriginalTitle !== undefined) setKeepOriginalTitle(parsed.keepOriginalTitle);
+        if (parsed.translateEpisodes !== undefined) setTranslateEpisodes(parsed.translateEpisodes);
+        if (parsed.enrichTmdbMedia !== undefined) setEnrichTmdbMedia(parsed.enrichTmdbMedia);
+        if (parsed.enableCatalogs !== undefined) setEnableCatalogs(parsed.enableCatalogs);
+      } catch (err) {
+        console.warn("[Configurator] Config hydration note:", err);
+      }
+    }
+  }, [initialConfiguration]);
 
   const isDefault =
     keepOriginalTitle &&
@@ -40,11 +72,53 @@ export function Configurator() {
     : "https://turkify-addon.vercel.app/manifest.json";
 
   const stremioInstallUrl = manifestUrl.replace(/^https?:\/\//, "stremio://");
+  const stremioWebInstallUrl = `https://web.stremio.com/#/addons?addon=${encodeURIComponent(manifestUrl)}`;
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(manifestUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2500);
+  const copyToClipboard = async (text: string): Promise<boolean> => {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+      throw new Error("Clipboard API unavailable");
+    } catch {
+      const textArea = document.createElement("textarea");
+      try {
+        textArea.value = text;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        textArea.style.top = "-999999px";
+        textArea.setAttribute("readonly", "");
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        const success = document.execCommand("copy");
+        return Boolean(success);
+      } catch (fallbackErr) {
+        console.warn("Copy fallback failed:", fallbackErr);
+        return false;
+      } finally {
+        if (document.body.contains(textArea)) {
+          textArea.remove();
+        }
+      }
+    }
+  };
+
+  const handleCopy = async () => {
+    const ok = await copyToClipboard(manifestUrl);
+    if (ok) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    }
+  };
+
+  const handleCopyNuvio = async () => {
+    const ok = await copyToClipboard(manifestUrl);
+    if (ok) {
+      setCopiedNuvio(true);
+      setTimeout(() => setCopiedNuvio(false), 2500);
+    }
   };
 
   return (
@@ -85,6 +159,7 @@ export function Configurator() {
               <button
                 type="button"
                 role="switch"
+                aria-label="Orijinal Başlıkları Koru"
                 aria-checked={keepOriginalTitle}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -123,6 +198,7 @@ export function Configurator() {
               <button
                 type="button"
                 role="switch"
+                aria-label="Dizi Bölüm Konularını Çevir"
                 aria-checked={translateEpisodes}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -161,6 +237,7 @@ export function Configurator() {
               <button
                 type="button"
                 role="switch"
+                aria-label="Gelişmiş Görsel ve Oyuncu Detayları"
                 aria-checked={enrichTmdbMedia}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -199,6 +276,7 @@ export function Configurator() {
               <button
                 type="button"
                 role="switch"
+                aria-label="Popüler İçerik Katalogları"
                 aria-checked={enableCatalogs}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -220,26 +298,17 @@ export function Configurator() {
           </div>
         </div>
 
-        {/* Important Addon Ordering / Priority Notice */}
-        <div className="mb-6 p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-200/90 text-xs sm:text-sm leading-relaxed flex items-start gap-3 shadow-lg shadow-amber-950/20">
-          <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
-          <div className="space-y-1">
-            <span className="font-bold text-amber-300 block text-xs sm:text-sm">
-              Önemli İpucu: Eklenti Sıralaması ve Öncelik
-            </span>
-            <p className="text-amber-200/80 text-xs leading-relaxed">
-              Stremio ve Nuvio'da film ve dizi detaylarının eksiksiz Türkçe görüntülenebilmesi için, uygulamanızın <strong>Eklentiler (Addons)</strong> listesinde <strong>Turkify</strong> eklentisini <strong>Cinemeta'nın üstüne (en başa)</strong> taşımanız veya önceliğini en yukarı almanız önerilir. Sıralamada altta kalması durumunda uygulamalar verileri varsayılan İngilizce Cinemeta kaynağından çekebilir.
-            </p>
-          </div>
-        </div>
-
-        {/* Generated URL Box with Single Kopyala Button */}
+        {/* Generated URL Box with Fast Copy */}
         <div className="space-y-2 mb-6">
-          <label className="text-xs font-semibold uppercase tracking-wider text-slate-400 block">
+          <label
+            htmlFor="manifest-url-input"
+            className="text-xs font-semibold uppercase tracking-wider text-slate-400 block"
+          >
             Eklenti Manifest Bağlantısı (Addon URL)
           </label>
           <div className="flex items-center gap-2 p-2 rounded-xl bg-black/60 border border-slate-800 focus-within:border-sky-500/50 transition-all duration-200">
             <input
+              id="manifest-url-input"
               type="text"
               readOnly
               value={manifestUrl}
@@ -268,17 +337,80 @@ export function Configurator() {
           </p>
         </div>
 
-        {/* Action Button - Single Primary CTA with sweeping light animation */}
-        <div className="flex flex-col sm:flex-row gap-3">
-          <a
-            href={stremioInstallUrl}
-            className="group relative overflow-hidden w-full px-5 py-3.5 rounded-xl bg-gradient-to-r from-sky-500 via-cyan-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-lg shadow-sky-950/40 transition-all duration-200 border border-sky-400/20 transform hover:-translate-y-0.5 active:scale-[0.98]"
-          >
-            {/* Shimmer reflection */}
-            <span className="absolute inset-0 w-1/3 h-full bg-white/20 blur-sm pointer-events-none -translate-x-[150%] skew-x-[-20deg] group-hover:translate-x-[350%] transition-transform duration-700 ease-out" />
-            <ExternalLink className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 duration-200" />
-            <span>Stremio'ya Otomatik Ekle</span>
-          </a>
+        {/* Action Buttons: Stremio Native, Nuvio One-Click Copy & Stremio Web */}
+        <div className="space-y-3 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <a
+              href={stremioInstallUrl}
+              className="group relative overflow-hidden px-4 py-3 sm:px-5 sm:py-3.5 rounded-xl bg-gradient-to-r from-sky-500 via-cyan-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-sky-950/40 transition-all duration-200 border border-sky-400/20 transform hover:-translate-y-0.5 active:scale-[0.98]"
+            >
+              <span className="absolute inset-0 w-1/3 h-full bg-white/20 blur-sm pointer-events-none -translate-x-[150%] skew-x-[-20deg] group-hover:translate-x-[350%] transition-transform duration-700 ease-out" />
+              <ExternalLink className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 duration-200 shrink-0" />
+              <span>Stremio'ya Otomatik Ekle</span>
+            </a>
+
+            <button
+              type="button"
+              onClick={handleCopyNuvio}
+              className="group relative px-4 py-3 sm:px-5 sm:py-3.5 rounded-xl bg-gradient-to-r from-emerald-600/90 to-teal-600/90 hover:from-emerald-500 hover:to-teal-500 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/30 transition-all duration-200 border border-emerald-400/30 transform hover:-translate-y-0.5 active:scale-[0.98]"
+            >
+              {copiedNuvio ? (
+                <>
+                  <Check className="w-4 h-4 text-white animate-icon-pop shrink-0" />
+                  <span>Nuvio İçin Kopyalandı!</span>
+                </>
+              ) : (
+                <>
+                  <Smartphone className="w-4 h-4 text-emerald-200 group-hover:scale-110 transition-transform shrink-0" />
+                  <span>Nuvio Bağlantısını Kopyala</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          <div className="flex items-center justify-center pt-1">
+            <a
+              href={stremioWebInstallUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition-colors border border-transparent hover:border-slate-800"
+            >
+              <Globe className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+              <span>iOS Safari veya Tarayıcı: <strong>Stremio Web'de Aç</strong></span>
+            </a>
+          </div>
+        </div>
+
+        {/* 2-Step Priority Guidance Card: Stremio & Nuvio Cinemeta Priority (Post-action instructions) */}
+        <div className="p-4 rounded-xl bg-slate-900/80 border border-amber-500/30 shadow-lg shadow-amber-950/20">
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0 mt-0.5">
+              <AlertTriangle className="w-4 h-4" />
+            </div>
+            <div className="space-y-2 flex-1">
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-bold text-amber-300">
+                  Önemli İpucu: Eklenti Sıralaması (Cinemeta Üstüne Alma)
+                </h4>
+                <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                  Kritik Adım
+                </span>
+              </div>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Stremio ve Nuvio aynı anda birden fazla meta sağlayıcısı yüklüyse en üst sıradaki eklentinin açıklamasını gösterir. Türkçe detayları kesintisiz görmek için:
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                <div className="flex items-center gap-2.5 p-2 rounded-lg bg-black/40 border border-slate-800 text-xs text-slate-300">
+                  <span className="w-5 h-5 rounded-full bg-sky-500/20 text-sky-400 font-bold flex items-center justify-center text-[10px] shrink-0 border border-sky-500/30">1</span>
+                  <span>Uygulamada <strong>Eklentiler</strong> menüsünü açın.</span>
+                </div>
+                <div className="flex items-center gap-2.5 p-2 rounded-lg bg-black/40 border border-slate-800 text-xs text-slate-300">
+                  <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center text-[10px] shrink-0 border border-emerald-500/30">2</span>
+                  <span><strong>Turkify</strong>'ı sürükleyerek <strong>Cinemeta'nın üstüne (1. sıraya)</strong> alın.</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

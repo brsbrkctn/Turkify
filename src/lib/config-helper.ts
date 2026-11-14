@@ -33,6 +33,9 @@ export function parseConfig(configParam?: string): AddonConfig {
 
   try {
     const params = new URLSearchParams(configParam);
+    if (params.has("config")) {
+      return parseConfig(params.get("config") || undefined);
+    }
     const hasKot = params.has("keepOriginalTitle");
     const hasTt = params.has("turkishTitle");
     return {

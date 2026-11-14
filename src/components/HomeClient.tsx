@@ -10,12 +10,37 @@ import { Footer } from "@/components/Footer";
 
 interface HomeClientProps {
   initialTotalUsers: number | null;
+  initialConfiguration?: string;
+  autoScroll?: boolean;
 }
 
-export function HomeClient({ initialTotalUsers }: HomeClientProps) {
+export function HomeClient({
+  initialTotalUsers,
+  initialConfiguration,
+  autoScroll = false,
+}: HomeClientProps) {
   const [totalUsers, setTotalUsers] = useState<number | null>(initialTotalUsers);
 
   useEffect(() => {
+    let scrollTimer: NodeJS.Timeout | null = null;
+
+    if (
+      autoScroll ||
+      (typeof window !== "undefined" &&
+        (window.location.pathname.includes("/configure") ||
+          window.location.hash === "#configurator"))
+    ) {
+      scrollTimer = setTimeout(() => {
+        const prefersReduced =
+          typeof window !== "undefined" &&
+          window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+        document.getElementById("configurator")?.scrollIntoView({
+          behavior: prefersReduced ? "auto" : "smooth",
+        });
+      }, 200);
+    }
+
     const controller = new AbortController();
 
     fetch("/api/stats", { signal: controller.signal })
@@ -29,8 +54,11 @@ export function HomeClient({ initialTotalUsers }: HomeClientProps) {
         // Silently ignore background refresh failures
       });
 
-    return () => controller.abort();
-  }, []);
+    return () => {
+      if (scrollTimer) clearTimeout(scrollTimer);
+      controller.abort();
+    };
+  }, [autoScroll]);
 
   const scrollToConfig = () => {
     document.getElementById("configurator")?.scrollIntoView({ behavior: "smooth" });
@@ -50,7 +78,7 @@ export function HomeClient({ initialTotalUsers }: HomeClientProps) {
           totalUsers={totalUsers}
         />
         <LivePreview />
-        <Configurator />
+        <Configurator initialConfiguration={initialConfiguration} />
         <NuvioGuide />
       </div>
       <Footer />

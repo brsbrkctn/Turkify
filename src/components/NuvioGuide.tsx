@@ -23,17 +23,17 @@ export function NuvioGuide() {
               </div>
               <div>
                 <h4 className="text-base font-bold text-white">Nuvio Kurulumu</h4>
-                <p className="text-xs text-slate-400">Android, TV ve Masaüstü</p>
+                <p className="text-xs text-slate-400">iOS, Android, Android TV & Web</p>
               </div>
             </div>
 
             <ol className="space-y-4 text-xs sm:text-sm text-slate-300">
               <li className="flex items-start gap-3">
-                <span className="w-6 h-6 rounded-full bg-sky-500/20 text-sky-400 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5 border border-sky-500/30">
+                <span className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5 border border-emerald-500/30">
                   1
                 </span>
                 <span>
-                  Yukarıdaki <strong>Kopyala</strong> butonuna basarak eklenti URL'ini panonuza alın.
+                  Yukarıdaki <strong>Nuvio Bağlantısını Kopyala</strong> butonuna basarak manifest linkini panonuza alın.
                 </span>
               </li>
               <li className="flex items-start gap-3">

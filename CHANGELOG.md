@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.7] - 2026-11-14
+
+### Added
+- **Configured Addon Settings Route (`/[configuration]/configure`)**:
+  - Implemented dynamic configuration route enabling Stremio's native gear (configure) icon to re-hydrate existing addon settings without throwing a 404 error.
+- **Dedicated One-Click Nuvio Action Button (`Configurator.tsx`)**:
+  - Added primary emerald copy button specifically tailored for Nuvio mobile, TV, and desktop users with animated copy feedback.
+- **Stremio Web Fallback Action Button**:
+  - Added direct web install link (`https://web.stremio.com/#/addons?addon=...`) for iOS Safari and browser-only Stremio users.
+- **2-Step Addon Priority Guidance Card ("Cinemeta Üstüne Alma")**:
+  - Re-positioned and styled visual guide showing users how to prioritize Turkify over Cinemeta in Stremio/Nuvio addon settings to prevent English fallback.
+- **Clipboard Fallback Engine (`copyToClipboard`)**:
+  - Implemented `document.execCommand('copy')` fallback wrapped in strict `finally` block to guarantee zombie `<textarea>` DOM elements are perpetually cleaned up.
+
+### Fixed
+- **Mobile Responsive Layout (320px–375px)**:
+  - Adjusted action button paddings and typography to prevent text truncation or vertical distortion on compact mobile screens.
+- **Accessibility & WCAG 2.1 Compliance**:
+  - Added `aria-label` attributes across all 4 configuration switches and linked label `htmlFor` to the manifest URL input.
+- **Scroll Timing & Reduced Motion**:
+  - Attached cleanup timers and respected user `prefers-reduced-motion` settings on smooth scroll transitions.
+- **Version Parity**:
+  - Synchronized `v1.2.7` across `package.json`, `manifest.ts`, `Header.tsx`, `layout.tsx`, `keep-alive/route.ts`, and `CHANGELOG.md`.
+
+---
+
 ## [1.2.6] - 2026-11-14
 
 ### Added
