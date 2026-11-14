@@ -30,8 +30,8 @@ export async function fetchTMDBMeta(
   if (!apiKey) return null;
 
   try {
-    const cleanId = imdbId.replace(/\.json$/, "");
-    const findUrl = `${TMDB_BASE_URL}/find/${cleanId}?external_source=imdb_id&language=tr-TR&api_key=${apiKey}`;
+    const cleanId = imdbId.replace(/\.json$/, "").trim().split(":")[0];
+    const findUrl = `${TMDB_BASE_URL}/find/${encodeURIComponent(cleanId)}?external_source=imdb_id&language=tr-TR&api_key=${apiKey}`;
 
     const res = await fetch(findUrl, { next: { revalidate: 86400 } });
     if (!res.ok) return null;

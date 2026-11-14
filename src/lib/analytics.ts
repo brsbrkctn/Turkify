@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import crypto from "crypto";
+import { waitUntil } from "@vercel/functions";
 import { getSupabase } from "./supabase";
 
 // In-memory cache to debounce rapid successive requests from the same client
@@ -56,8 +57,8 @@ function generateVisitorHash(ip: string, userAgent: string): string {
  * Guaranteed to be non-blocking with zero impact on addon response times.
  */
 export function recordDailyVisit(request: NextRequest): void {
-  // Execute completely in the background without awaiting
-  (async () => {
+  // Execute in the background and ensure completion via waitUntil on Vercel Serverless
+  const task = (async () => {
     try {
       const userAgent = request.headers.get("user-agent") || "unknown";
 
@@ -116,6 +117,12 @@ export function recordDailyVisit(request: NextRequest): void {
       console.warn("[Analytics] Tracking exception:", err?.message || err);
     }
   })();
+
+  try {
+    waitUntil(task);
+  } catch {
+    // Non-Vercel environment fallback (local testing/scripts)
+  }
 }
 
 export interface TurkifyStats {

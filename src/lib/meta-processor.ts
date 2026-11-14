@@ -51,20 +51,67 @@ export async function getTranslatedMetadata(
   rawId: string,
   config: AddonConfig = {}
 ): Promise<{ meta: MetaDetail | null }> {
-  const cleanId = rawId.replace(/\.json$/, "").trim();
+  const cleanId = rawId.replace(/\.json$/, "").trim().split(":")[0];
 
-  // Validate IMDb ID format
-  if (!cleanId.startsWith("tt")) {
+  // Validate IMDb ID format: tt followed by 5 to 10 digits (covers legacy and current IDs)
+  if (!/^tt\d{5,10}$/.test(cleanId)) {
     return { meta: null };
   }
 
-  // 1. Fetch base metadata from Cinemeta
+  // 1. Fetch base metadata from Cinemeta (provides core protocol fields: trailers, links, behaviorHints, moviedb_id)
   const baseMeta = await fetchCinemetaMeta(type, cleanId);
   if (!baseMeta) {
     return { meta: null };
   }
 
-  // 2. Fetch TMDB data in parallel for rich cast, Turkish title & overview
+  // 2. Fast cache check: if movie is already cached with verified TMDB Turkish data, return immediately without hitting TMDB API
+  let cached: CachedMetadata | null = null;
+  try {
+    cached = await getCachedMeta(cleanId);
+    if (
+      type === "movie" &&
+      cached &&
+      cached.overview &&
+      cached.overview.trim().length > 15 &&
+      !isLikelyEnglish(cached.overview) &&
+      cached.source === "tmdb"
+    ) {
+      const displayName =
+        config.keepOriginalTitle === false && cached.title
+          ? cached.title
+          : cached.original_title || baseMeta.name;
+
+      const finalPoster =
+        config.enrichTmdbMedia !== false
+          ? cached.poster || baseMeta.poster
+          : baseMeta.poster;
+
+      const finalBackground =
+        config.enrichTmdbMedia !== false
+          ? cached.background || baseMeta.background
+          : baseMeta.background;
+
+      return {
+        meta: {
+          ...baseMeta,
+          name: displayName,
+          originalName: baseMeta.name,
+          description: cached.overview,
+          genres: cached.genres || translateGenres(baseMeta.genres),
+          poster: finalPoster,
+          background: finalBackground,
+          logo: cached.logo || baseMeta.logo,
+          cast: cached.cast && cached.cast.length > 0 ? cached.cast : baseMeta.cast,
+          moviedb_id: (baseMeta as any).moviedb_id,
+          behaviorHints: baseMeta.behaviorHints || { defaultVideoId: cleanId },
+        },
+      };
+    }
+  } catch (err) {
+    console.warn(`[MetaProcessor] Fast cache lookup error for ${cleanId}:`, err);
+  }
+
+  // 3. Fetch TMDB data for rich cast, Turkish title & overview (when not cached or cache needs upgrade)
   let tmdbData: Awaited<ReturnType<typeof fetchTMDBMeta>> = null;
   try {
     tmdbData = await fetchTMDBMeta(type, cleanId);
@@ -74,9 +121,11 @@ export async function getTranslatedMetadata(
 
   const tmdbId = tmdbData?.tmdbId || (baseMeta as any).moviedb_id;
 
-  // 3. Check Supabase cache for existing translations
+  // 4. Check existing Supabase cache for translation merging / series episode processing
   try {
-    const cached = await getCachedMeta(cleanId);
+    if (!cached) {
+      cached = await getCachedMeta(cleanId);
+    }
     if (cached) {
       let cachedVideos = cached.videos;
       let cachedOverview = cached.overview;

@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.6] - 2026-11-14
+
+### Added
+- **Edge CDN Differential Caching (`route.ts`)**:
+  - Implemented high-performance edge caching on `/meta/[type]/[id]` and `/[configuration]/meta/[type]/[id]`.
+  - Movies: `public, max-age=86400, s-maxage=259200, stale-while-revalidate=86400` (3 days edge CDN, 24h client).
+  - Series: `public, max-age=3600, s-maxage=14400, stale-while-revalidate=3600` (4 hours edge CDN, 1h client) ensuring newly aired weekly episodes are never delayed.
+- **Serverless Background Analytics with `waitUntil` (`src/lib/analytics.ts`)**:
+  - Integrated `@vercel/functions` `waitUntil` into `recordDailyVisit`, keeping background asynchronous execution alive after HTTP response delivery without blocking addon latency.
+  - Added safe fallback for non-Vercel and local environments.
+- **Fast Movie Cache-First Bypass (`src/lib/meta-processor.ts`)**:
+  - For movies with verified TMDB Turkish translations, Supabase cache bypasses external TMDB network calls while preserving Cinemeta base protocol fields (`trailers`, `links`, `behaviorHints`, `moviedb_id`).
+
+### Fixed
+- **CDN Cache Poisoning Prevention (`route.ts`)**:
+  - Enforced `Cache-Control: no-store, no-cache, must-revalidate` whenever metadata is not found or upstream services return `{ meta: null }`, preventing empty responses from getting cached on Vercel CDN.
+- **Stremio Protocol Integrity Preservation (`meta-processor.ts`)**:
+  - Preserved Cinemeta base skeleton to guarantee circular cast photos (`links`), subtitles integration (`moviedb_id`), trailers, and video behavior hints are never stripped.
+  - Respected user configurations `enrichTmdbMedia` and `keepOriginalTitle` across cached and live paths.
+- **IMDb ID Validation & Sanitization**:
+  - Relaxed regex to `/^tt\d{5,10}$/` to support older classic 5-6 digit IMDb IDs as well as modern 7-10 digit IDs.
+  - Sanitized episode sub-identifiers (`tt...:1:1` -> `tt...`) and applied `encodeURIComponent` to Cinemeta and TMDB URLs.
+- **Version Parity**:
+  - Synchronized `v1.2.6` across `package.json`, `manifest.ts`, `Header.tsx`, `layout.tsx`, `keep-alive/route.ts`, and `CHANGELOG.md`.
+
+---
+
 ## [1.2.5] - 2026-11-14
 
 ### Added

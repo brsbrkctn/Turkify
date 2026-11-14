@@ -9,8 +9,8 @@ export async function fetchCinemetaMeta(
   type: "movie" | "series",
   imdbId: string
 ): Promise<MetaDetail | null> {
-  const cleanId = imdbId.replace(/\.json$/, "");
-  const url = `${CINEMETA_URL}/meta/${type}/${cleanId}.json`;
+  const cleanId = imdbId.replace(/\.json$/, "").trim().split(":")[0];
+  const url = `${CINEMETA_URL}/meta/${type}/${encodeURIComponent(cleanId)}.json`;
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 7000);
