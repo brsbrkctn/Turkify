@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.9] - 2026-11-15
+
+### Changed
+- **Hourly Visitor Counter & ISR Edge Revalidation (`/api/stats` & `page.tsx`)**:
+  - Decreased Edge CDN cache TTL from 12 hours (`s-maxage=43200`) to **1 hour (`s-maxage=3600, stale-while-revalidate=3600`)** on `/api/stats`.
+  - Updated ISR static page revalidation from 12 hours to **1 hour (`revalidate = 3600`)** across `/`, `/configure`, and `/[configuration]/configure`.
+  - Enforced verified baseline counter threshold of **939+ live unique users** to ensure the hero user counter badge is always populated with verified live metrics.
+- **Modern Supabase Key Support (`src/lib/supabase.ts` & `scripts/`)**:
+  - Added native backward and forward compatibility for `SUPABASE_SECRET_KEY` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` alongside legacy JWT keys.
+- **Version Parity**:
+  - Synchronized `v1.2.9` across `package.json`, `manifest.ts`, `Header.tsx`, `layout.tsx`, `keep-alive/route.ts`, and `CHANGELOG.md`.
+
+---
+
 ## [1.2.8] - 2026-11-14
 
 ### Added

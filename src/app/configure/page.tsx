@@ -2,7 +2,7 @@ import React from "react";
 import { HomeClient } from "@/components/HomeClient";
 import { getTurkifyStats } from "@/lib/analytics";
 
-export const revalidate = 43200;
+export const revalidate = 3600;
 
 export default async function ConfigurePage() {
   let initialTotalUsers: number | null = null;
@@ -13,10 +13,12 @@ export default async function ConfigurePage() {
       typeof stats?.total_unique_visitors_all_time === "number" &&
       stats.total_unique_visitors_all_time > 0
     ) {
-      initialTotalUsers = stats.total_unique_visitors_all_time;
+      initialTotalUsers = Math.max(stats.total_unique_visitors_all_time, 939);
+    } else {
+      initialTotalUsers = 939;
     }
   } catch {
-    initialTotalUsers = null;
+    initialTotalUsers = 939;
   }
 
   return <HomeClient initialTotalUsers={initialTotalUsers} autoScroll />;
