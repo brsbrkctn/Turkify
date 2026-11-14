@@ -21,12 +21,14 @@ export async function GET(
 
   const cleanId = id.replace(/\.json$/, "").trim();
   const config = parseConfig(configuration);
+  const rawSkip = parseInt(request.nextUrl.searchParams.get("skip") || "0", 10);
+  const skip = isNaN(rawSkip) || rawSkip < 0 ? 0 : rawSkip;
 
   try {
     const result = await getTranslatedCatalog(
       type as "movie" | "series",
       cleanId,
-      0,
+      skip,
       undefined,
       config
     );

@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS public.daily_analytics (
 CREATE INDEX IF NOT EXISTS idx_daily_analytics_date ON public.daily_analytics(date DESC);
 CREATE INDEX IF NOT EXISTS idx_daily_analytics_client ON public.daily_analytics(client_type);
 CREATE INDEX IF NOT EXISTS idx_daily_analytics_visitor_hash ON public.daily_analytics(visitor_hash);
-CREATE INDEX IF NOT EXISTS idx_daily_analytics_date_hash ON public.daily_analytics(date, visitor_hash);
+-- Not: idx_daily_analytics_date_hash kaldırıldı çünkü uq_daily_visitor (date, visitor_hash, client_type) bileşik indeksi bu alanı zaten kapsıyor.
 
 -- daily_analytics tablosu tamamen kilitlidir (RLS aktif, doğrudan anonim erişim yok).
 -- Yalnızca SECURITY DEFINER olan record_daily_visit() ve get_turkify_stats() fonksiyonları
@@ -191,3 +191,13 @@ BEGIN
     RETURN result;
 END;
 $$;
+
+-- =========================================================
+-- Güvenlik Sertleştirmesi (Security Hardening):
+-- Fonksiyonların dışarıdan anon anahtarla doğrudan çağrılmasını engelle,
+-- yalnızca sunucu taraflı service_role ile çalıştırılmasına izin ver.
+-- =========================================================
+REVOKE EXECUTE ON FUNCTION public.record_daily_visit FROM anon, PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.get_turkify_stats FROM anon, PUBLIC;
+GRANT EXECUTE ON FUNCTION public.record_daily_visit TO service_role;
+GRANT EXECUTE ON FUNCTION public.get_turkify_stats TO service_role;

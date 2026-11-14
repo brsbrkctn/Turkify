@@ -282,7 +282,7 @@ function decodeHtmlEntities(str: string): string {
     .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
 }
 
-const MYMEMORY_EMAIL = process.env.MYMEMORY_EMAIL || "brsberkectn@gmail.com";
+const MYMEMORY_EMAIL = process.env.MYMEMORY_EMAIL || "";
 
 /**
  * Secondary fallback using MyMemory API.

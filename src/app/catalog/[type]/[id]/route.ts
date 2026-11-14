@@ -20,7 +20,8 @@ export async function GET(
 
   const cleanId = id.replace(/\.json$/, "").trim();
   const searchParams = request.nextUrl.searchParams;
-  const skip = parseInt(searchParams.get("skip") || "0", 10);
+  const rawSkip = parseInt(searchParams.get("skip") || "0", 10);
+  const skip = isNaN(rawSkip) || rawSkip < 0 ? 0 : rawSkip;
 
   try {
     const result = await getTranslatedCatalog(

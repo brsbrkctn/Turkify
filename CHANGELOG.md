@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.5] - 2026-11-14
+
+### Added
+- **Vercel Keep-Alive Daily Cron (`vercel.json`)**:
+  - Configured native daily cron job (`0 4 * * *`) pinging `/api/keep-alive` to perpetually prevent Supabase Free tier 7-day inactivity pause.
+- **Stremio Manifest Background Asset (`public/background.jpg`)**:
+  - Added Full HD 1920x1080 dark theme ambient background image (18.8 KB) matching Turkify palette, resolving Stremio Addon Catalog 404 error.
+- **Secure Script Environment Loader (`scripts/load-env.mjs`)**:
+  - Created zero-dependency environment loader with fallback parser for local maintenance scripts.
+
+### Fixed
+- **Stremio Catalog Pagination URL Fix (`src/lib/catalog.ts`)**:
+  - Corrected Cinemeta upstream pagination format from malformed `top?skip=20.json` (404 error) to official Stremio SDK v3 route `top/skip=20.json` (200 OK), restoring infinite scrolling across all Turkish catalogs.
+- **Configured Catalog Skip Normalization (`route.ts`)**:
+  - Fixed hardcoded `skip: 0` in `[configuration]/catalog/[type]/[id]/route.ts` to dynamically parse and sanitize `request.nextUrl.searchParams.get("skip")`.
+- **Credential Sanitation in Scripts (`scripts/*.mjs`)**:
+  - Removed all hardcoded Supabase URLs and Anon JWT tokens from `get-stats.mjs`, `repair-cache.mjs`, `sync-all-tmdb.mjs`, and `test-meta.mjs`.
+- **Developer Email Privacy (`src/lib/translator.ts`)**:
+  - Removed plaintext developer personal email from MyMemory API fallback logic in favor of environment variable `MYMEMORY_EMAIL`.
+- **Database Index & Permission Hardening (`supabase/schema.sql`)**:
+  - Dropped redundant duplicate index `idx_daily_analytics_date_hash` (covered by `uq_daily_visitor`).
+  - Restricted `record_daily_visit` and `get_turkify_stats` RPC execution to `service_role`, revoking direct unauthenticated client execution.
+- **Version Parity**:
+  - Synchronized `v1.2.5` across `package.json`, `manifest.ts`, `Header.tsx`, `layout.tsx`, `keep-alive/route.ts`, and `CHANGELOG.md`.
+
+---
+
 ## [1.2.4] - 2026-11-13
 
 ### Fixed

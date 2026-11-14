@@ -48,10 +48,8 @@ export async function getTranslatedCatalog(
         search.trim()
       )}.json`;
     } else {
-      const skipParam = skip > 0 ? `skip=${skip}` : "";
-      url = `${CINEMETA_URL}/catalog/${type}/top${
-        skipParam ? `?${skipParam}` : ""
-      }.json`;
+      const skipParam = skip > 0 ? `/skip=${skip}` : "";
+      url = `${CINEMETA_URL}/catalog/${type}/top${skipParam}.json`;
     }
 
     const res = await fetch(url, {
